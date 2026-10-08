@@ -242,9 +242,11 @@ export default function ResultPage() {
                         {products.map((product) => (
                           <article className="product-card" key={product.id}>
                             <div className="product-card-meta">
-                              <span>{product.priceTier === "affordable"
-                                ? t("priceAffordable")
-                                : t("pricePremium")}</span>
+                              {product.priceTier && (
+                                <span>{product.priceTier === "affordable"
+                                  ? t("priceAffordable")
+                                  : t("pricePremium")}</span>
+                              )}
                               <span>{product.market === "hr"
                                 ? t("marketCroatia")
                                 : t("marketGlobal")}</span>
@@ -261,7 +263,7 @@ export default function ResultPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {t("viewProduct")} · {product.retailer}
+                              {t("searchShopping")} · {product.retailer}
                               <ExternalLink size={15} />
                             </a>
                           </article>

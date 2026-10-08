@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { searchProducts } from "@/lib/gemini";
+import { buildShoppingSearches } from "@/lib/product-searches";
 import {
   recommendationRequestSchema,
   recommendationResponseSchema,
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
     const result = recommendationResponseSchema.parse({
-      recommendations: await searchProducts(parsedInput.data),
+      recommendations: buildShoppingSearches(parsedInput.data),
     });
 
     return NextResponse.json(result, {
