@@ -3,7 +3,7 @@ import { translate } from "./i18n";
 
 describe("translations", () => {
   it("returns Croatian by default selection", () => {
-    expect(translate("hr", "createLook")).toContain("kreirAI");
+    expect(translate("hr", "createLook")).toBe("Kreiraj svoj look");
   });
 
   it("returns the English copy", () => {

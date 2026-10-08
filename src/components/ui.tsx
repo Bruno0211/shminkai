@@ -7,8 +7,8 @@ import { useLocale } from "./locale-provider";
 
 export function Brand({ href = "/" }: { href?: string }) {
   return (
-    <Link href={href} className="brand" aria-label="kreirAI home">
-      kreir<span>AI</span>
+    <Link href={href} className="brand" aria-label="shminkAI home">
+      shmink<span>AI</span>
     </Link>
   );
 }
@@ -91,7 +91,7 @@ export function Dialog({
         <button className="dialog-close" onClick={onClose} aria-label="Close">
           <X size={20} />
         </button>
-        <p className="eyebrow">kreirAI</p>
+        <p className="eyebrow">shminkAI</p>
         <h2 id="dialog-title">{title}</h2>
         <div className="dialog-content">{children}</div>
       </section>

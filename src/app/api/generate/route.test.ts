@@ -13,11 +13,15 @@ const analysis = {
 
 const lookProfile = {
   intensity: "soft",
+  complexionDepth: "medium",
+  complexionUndertone: "warm",
   complexionFinish: "radiant",
   blushFamily: "peach",
   bronzerFamily: "warm",
   eyeFamilies: ["bronze", "gold"],
   eyelinerColor: "brown",
+  mascaraColor: "brown",
+  browColor: "brown",
   lipFamily: "nude",
   lipFinish: "satin",
 } as const;

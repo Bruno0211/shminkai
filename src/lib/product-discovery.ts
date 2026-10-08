@@ -14,7 +14,8 @@ import {
 
 const SEARCH_TIMEOUT_MS = 60_000;
 const URL_CHECK_TIMEOUT_MS = 6_000;
-const MAX_PRODUCTS_PER_CATEGORY = 2;
+const MAX_PRODUCTS_PER_CATEGORY = 5;
+const MIN_RECOMMENDATIONS_PER_CATEGORY = 3;
 
 function extractJson(text: string): unknown {
   const start = text.indexOf("{");
@@ -31,7 +32,7 @@ export async function productPageExists(url: string): Promise<boolean> {
     const response = await fetch(url, {
       redirect: "follow",
       signal: AbortSignal.timeout(URL_CHECK_TIMEOUT_MS),
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; kreirAI product check)" },
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; shminkAI product check)" },
     });
     await response.body?.cancel();
     if (response.status === 404 || response.status === 410) return false;
@@ -67,7 +68,9 @@ async function searchCategory(
   });
 
   const { products } = discoveredProductsSchema.parse(extractJson(response.text ?? ""));
-  const candidates = products.filter((product) => retailerForUrl(product.url));
+  const candidates = products
+    .filter((product) => retailerForUrl(product.url))
+    .sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
   const verified = await Promise.all(
     candidates.map(async (product) => ((await productPageExists(product.url)) ? product : null)),
   );
@@ -77,18 +80,19 @@ async function searchCategory(
     .filter((product) => product !== null)
     .filter((product) => !seen.has(product.url) && seen.add(product.url))
     .slice(0, MAX_PRODUCTS_PER_CATEGORY)
-    .map((product, index) => ({
+    .map<ProductRecommendation>((product, index) => ({
       id: `product-${search.category}-${index}`,
       kind: "product",
       category: search.category,
       brand: product.brand,
       name: product.name,
       shadeGuidance: product.shade?.trim() || search.shadeGuidance,
-      market: "hr",
+      matchScore: product.matchScore ?? Math.max(60, 100 - (index * 5)),
       retailer: retailerForUrl(product.url)!.name,
       url: product.url,
       matchReason: product.matchReason,
-    }));
+    }))
+    .sort((a, b) => b.matchScore - a.matchScore);
 }
 
 // Searches each makeup category in parallel on the allowed shops. A category
@@ -102,16 +106,21 @@ export async function discoverProducts({
 }): Promise<ProductRecommendation[]> {
   const searches = buildCategorySearches({ lookProfile, locale });
   const results = await Promise.all(searches.map(async (search) => {
+    let products: ProductRecommendation[] = [];
     try {
-      const products = await searchCategory(search, locale);
-      if (products.length > 0) return products;
+      products = await searchCategory(search, locale);
     } catch (error) {
       console.error(
         `Product search failed for ${search.category}:`,
         error instanceof Error ? error.message : "Unknown provider error",
       );
     }
-    return [fallbackSearch(search, locale)];
+    const usedRetailers = new Set(products.map((product) => product.retailer));
+    const fallbacks = retailers
+      .filter((retailer) => !usedRetailers.has(retailer.name))
+      .slice(0, Math.max(0, MIN_RECOMMENDATIONS_PER_CATEGORY - products.length))
+      .map((retailer, index) => fallbackSearch(search, locale, retailer, index));
+    return [...products, ...fallbacks].sort((a, b) => b.matchScore - a.matchScore);
   }));
   return results.flat();
 }

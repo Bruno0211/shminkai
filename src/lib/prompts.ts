@@ -74,9 +74,9 @@ Include one reason explaining how the makeup works with the outfit.`
 ${JSON.stringify(analysis)}
 User preferences: ${JSON.stringify(preferences ?? {})}${outfitDirection}
 Respond in ${locale === "hr" ? "Croatian" : "English"} as JSON with:
-{"lookName":"string","explanation":["string"],"lookProfile":{"intensity":"soft|medium|bold","complexionFinish":"natural|matte|radiant|satin","blushFamily":"color family","bronzerFamily":"neutral|warm","eyeFamilies":["1-3 color families"],"eyelinerColor":"black|brown|plum","lipFamily":"color family","lipFinish":"matte|satin|glossy"}}.
+{"lookName":"string","explanation":["string"],"lookProfile":{"intensity":"soft|medium|bold","complexionDepth":"fair|light|medium|tan|deep","complexionUndertone":"cool|neutral|warm|olive","complexionFinish":"natural|matte|radiant|satin","blushFamily":"color family","bronzerFamily":"neutral|warm","eyeFamilies":["1-3 color families"],"eyelinerColor":"black|brown|plum","mascaraColor":"black|brown|plum","browColor":"black|brown|taupe|auburn|blonde","lipFamily":"color family","lipFinish":"matte|satin|glossy"}}.
 Allowed color families: neutral, rose, peach, coral, berry, mauve, red, nude, brown, bronze, gold, champagne, taupe, plum, black.
-The lookProfile must describe the makeup visibly applied in the generated look so it can be matched to real cosmetic products.
+The lookProfile must describe every visible makeup shade and finish, including a broad complexion depth and undertone, so it can be matched to real cosmetic products.
 Discuss color harmony and placement only. Do not make health, ethnicity, age, or personality claims.`;
 }
 
@@ -92,14 +92,14 @@ export function productSearchPrompt({
   domains: readonly string[];
 }) {
   const sites = domains.map((domain) => `site:${domain}`).join(" OR ");
-  return `Find up to 2 makeup products currently sold in Croatia that best match: "${query}" (shade/color direction: ${shadeGuidance}).
+  return `Find up to 5 makeup products currently sold in Croatia that best match: "${query}" (shade/color direction: ${shadeGuidance}).
 Search ONLY these shops, using queries such as: ${query} (${sites})
 Rules:
 - Every url must be a direct product page on one of these domains: ${domains.join(", ")}. Never link to search pages, category pages, or any other website.
 - Only include a product if you found its product page in the search results. Do not guess or construct URLs.
-- Prefer products whose shade or color matches the requested direction; name the matching shade when there is one.
-- For foundation or concealer, do not pick a skin shade; recommend the formula only.
+- Recommend a specific shade for every product, including foundation. Use the requested broad complexion depth and undertone for foundation; do not claim an exact skin-color measurement.
+- Rank products from strongest to weakest match and assign each a matchScore from 0 to 100.
 Respond with only JSON, no prose, in this shape:
-{"products":[{"brand":"...","name":"...","shade":"...","url":"https://...","matchReason":"..."}]}
+{"products":[{"brand":"...","name":"...","shade":"...","url":"https://...","matchScore":95,"matchReason":"..."}]}
 Write matchReason (one short sentence) in ${locale === "hr" ? "Croatian" : "English"}. Return {"products":[]} if nothing suitable is found.`;
 }

@@ -1,4 +1,4 @@
-# kreirAI
+# shminkAI
 
 A mobile-first Croatian/English web app that analyzes visible facial features and uses Gemini image editing to create a personalized makeup look.
 

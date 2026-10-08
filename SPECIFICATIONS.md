@@ -1,4 +1,4 @@
-# kreirAI Product Specification
+# shminkAI Product Specification
 
 Last updated: 2026-10-08
 
@@ -6,7 +6,7 @@ This file is the canonical product specification. Update it whenever a requireme
 
 ## 1. Product vision
 
-kreirAI is a mobile-first web application that creates personalized makeup looks from a face photograph. AI analyzes visible cosmetic characteristics—including skin tone and undertone, eye and hair color, face shape, eye shape, and lip shape—and generates a realistic makeup look designed for those features.
+shminkAI is a mobile-first web application that creates personalized makeup looks from a face photograph. AI analyzes visible cosmetic characteristics—including skin tone and undertone, eye and hair color, face shape, eye shape, and lip shape—and generates a realistic makeup look designed for those features.
 
 The key differentiator is feature-aware personalization rather than applying a generic makeup filter.
 
@@ -28,7 +28,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 
 - Show two overlapping before/after makeup cards.
 - Carousel advances automatically every five seconds and also supports manual slide selection.
-- Show the primary “kreirAI svoj look” / “creAIte your look” CTA.
+- Show the primary “Kreiraj svoj look” / “Create your look” CTA.
 - Show an information button that opens an explanation of the application.
 - State that uploaded photos are not stored.
 
@@ -84,18 +84,20 @@ The key differentiator is feature-aware personalization rather than applying a g
 
 ## 10. Product recommendations
 
-- Generate a structured makeup profile describing the look's color families, finishes, and intensity, and use it as the shared plan for both image generation and product matching.
+- Generate a structured makeup profile describing the look's color families, finishes, intensity, complexion depth and undertone, brow shade, and mascara shade, and use it as the shared plan for both image generation and product matching.
 - Load recommendations on demand when the user opens the product list; cache them only for the current page session.
 - While live product discovery is running, show one accessible animated progress bar and replace it with results when the search completes.
 - Discover real products with Gemini grounded Google Search, restricted to the allowed Croatian retailers configured in `src/lib/retailers.ts` (currently notino.hr, douglas.hr, dm.hr, mueller.hr).
-- Run one search per full-look category in parallel: complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips. Return up to two products per category.
+- Run one search per full-look category in parallel: complexion, concealer, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips. Return up to five discovered products per category and show at least three recommendations per category by supplementing sparse results with retailer-specific fallback searches.
 - Derive every search query from the validated structured makeup profile.
 - Keep only HTTPS product-page URLs on an allowed retailer domain; discard links that return 404/410 or redirect off the allowed shops or to a homepage.
 - If a category's search fails, times out, or yields no verified product, fall back to a Google search link restricted to the allowed retailers with `site:` operators.
 - Use a low thinking level for product searches so the full list loads in roughly 15 seconds.
 - Open product and search links safely in a new tab.
-- For foundation and concealer, recommend only the formula or finish and instruct the user to choose their own shade; do not estimate an exact complexion shade from the photo.
-- Show the search category, shade/color guidance, market, and a concise reason why the search matches the look.
+- Recommend shade or color guidance in every category, including foundation. Foundation suggestions may use the broad visible complexion depth and undertone in the structured profile, but must tell users to verify the shade before buying rather than claiming an exact skin-color measurement.
+- Sort each category from strongest to weakest match, with the best match first.
+- Present the category selector and each category's product cards as horizontally scrollable rows on mobile and desktop.
+- Show the search category, shade/color guidance, and a concise reason why the search matches the look. Do not show a country or market label in the product section.
 - Support Croatian and English product-list UI and matching explanations.
 - State that product prices and availability can change.
 - Send only the structured makeup profile to the recommendation endpoint, never the face photo or generated image.

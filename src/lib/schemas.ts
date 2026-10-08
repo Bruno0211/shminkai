@@ -65,17 +65,22 @@ export const productFinishSchema = z.enum([
 
 export const lookProfileSchema = z.object({
   intensity: z.enum(["soft", "medium", "bold"]),
+  complexionDepth: z.enum(["fair", "light", "medium", "tan", "deep"]),
+  complexionUndertone: z.enum(["cool", "neutral", "warm", "olive"]),
   complexionFinish: z.enum(["natural", "matte", "radiant", "satin"]),
   blushFamily: colorFamilySchema,
   bronzerFamily: z.enum(["neutral", "warm"]),
   eyeFamilies: z.array(colorFamilySchema).min(1).max(3),
   eyelinerColor: z.enum(["black", "brown", "plum"]),
+  mascaraColor: z.enum(["black", "brown", "plum"]),
+  browColor: z.enum(["black", "brown", "taupe", "auburn", "blonde"]),
   lipFamily: colorFamilySchema,
   lipFinish: z.enum(["matte", "satin", "glossy"]),
 });
 
 export const productCategorySchema = z.enum([
   "complexion",
+  "concealer",
   "blush",
   "bronzer",
   "eyeshadow",
@@ -98,14 +103,14 @@ export const productRecommendationSchema = z.object({
   name: z.string().min(1).max(160),
   shadeGuidance: z.string().min(1).max(160),
   priceTier: z.enum(["affordable", "premium"]).optional(),
-  market: z.enum(["hr", "global"]),
+  matchScore: z.number().int().min(0).max(100),
   retailer: z.string().min(1).max(80),
   url: z.string().url().refine((url) => url.startsWith("https://")),
   matchReason: z.string().min(1).max(240),
 });
 
 export const recommendationResponseSchema = z.object({
-  recommendations: z.array(productRecommendationSchema).min(1).max(24),
+  recommendations: z.array(productRecommendationSchema).min(1).max(45),
 });
 
 export const discoveredProductsSchema = z.object({
@@ -114,6 +119,7 @@ export const discoveredProductsSchema = z.object({
     name: z.string().min(1).max(160),
     shade: z.string().max(160).optional(),
     url: z.string().url(),
+    matchScore: z.number().int().min(0).max(100).optional(),
     matchReason: z.string().min(1).max(240),
   })).max(5),
 });

@@ -23,6 +23,7 @@ import {
 
 const productCategories: ProductCategory[] = [
   "complexion",
+  "concealer",
   "blush",
   "bronzer",
   "eyeshadow",
@@ -34,6 +35,7 @@ const productCategories: ProductCategory[] = [
 
 const categoryTranslationKeys = {
   complexion: "categoryComplexion",
+  concealer: "categoryConcealer",
   blush: "categoryBlush",
   bronzer: "categoryBronzer",
   eyeshadow: "categoryEyeshadow",
@@ -52,6 +54,8 @@ export default function ResultPage() {
   const [productsError, setProductsError] = useState("");
   const [recommendations, setRecommendations] = useState<ProductRecommendation[] | null>(null);
   const [recommendationLocale, setRecommendationLocale] = useState("");
+  const [activeProductCategory, setActiveProductCategory] =
+    useState<ProductCategory>("complexion");
 
   useEffect(() => {
     const raw = sessionStorage.getItem("kreirai-result");
@@ -144,7 +148,7 @@ export default function ResultPage() {
             <a
               className="secondary-button"
               href={result.image}
-              download="kreirAI-look.png"
+              download="shminkAI-look.png"
             >
               <Download size={17} /> {t("download")}
             </a>
@@ -237,27 +241,58 @@ export default function ResultPage() {
               </div>
             )}
             {recommendations && (
-              <div className="product-groups">
+              <>
+                <div
+                  className="product-category-tabs"
+                  role="tablist"
+                  aria-label={t("productCategories")}
+                >
+                  {productCategories.map((category) => (
+                    <button
+                      type="button"
+                      id={`product-tab-${category}`}
+                      role="tab"
+                      aria-selected={activeProductCategory === category}
+                      aria-controls={`product-panel-${category}`}
+                      className={activeProductCategory === category ? "active" : ""}
+                      onClick={() => setActiveProductCategory(category)}
+                      key={category}
+                    >
+                      {t(categoryTranslationKeys[category])}
+                    </button>
+                  ))}
+                </div>
+                <div className="product-groups">
                 {productCategories.map((category) => {
+                  if (category !== activeProductCategory) return null;
                   const products = recommendations.filter(
                     (recommendation) => recommendation.category === category,
-                  );
+                  ).sort((a, b) => b.matchScore - a.matchScore);
                   if (products.length === 0) return null;
                   return (
-                    <section className="product-group" key={category}>
+                    <section
+                      className="product-group"
+                      id={`product-panel-${category}`}
+                      role="tabpanel"
+                      aria-labelledby={`product-tab-${category}`}
+                      key={category}
+                    >
                       <h3>{t(categoryTranslationKeys[category])}</h3>
-                      <div className="product-grid">
-                        {products.map((product) => (
-                          <article className="product-card" key={product.id}>
+                      <div
+                        className="product-grid"
+                        role="list"
+                        aria-label={t(categoryTranslationKeys[category])}
+                        tabIndex={0}
+                      >
+                        {products.map((product, index) => (
+                          <article className="product-card" key={product.id} role="listitem">
                             <div className="product-card-meta">
+                              {index === 0 && <span>{t("bestMatch")}</span>}
                               {product.priceTier && (
                                 <span>{product.priceTier === "affordable"
                                   ? t("priceAffordable")
                                   : t("pricePremium")}</span>
                               )}
-                              <span>{product.market === "hr"
-                                ? t("marketCroatia")
-                                : t("marketGlobal")}</span>
                             </div>
                             <p className="product-brand">{product.brand}</p>
                             <h4>{product.name}</h4>
@@ -281,7 +316,8 @@ export default function ResultPage() {
                     </section>
                   );
                 })}
-              </div>
+                </div>
+              </>
             )}
             <p className="product-disclaimer">{t("productDisclaimer")}</p>
           </section>
