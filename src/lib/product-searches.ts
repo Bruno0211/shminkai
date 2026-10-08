@@ -40,7 +40,7 @@ function shoppingUrl(query: string, locale: Locale) {
   const url = new URL("https://www.google.com/search");
   url.searchParams.set("tbm", "shop");
   url.searchParams.set("hl", locale);
-  url.searchParams.set("q", `${query} makeup Croatia`);
+  url.searchParams.set("q", `${query} Croatia`);
   return url.toString();
 }
 
