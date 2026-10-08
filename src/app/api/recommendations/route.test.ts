@@ -53,7 +53,7 @@ describe("POST /api/recommendations", () => {
       (recommendation: { category: string }) => recommendation.category === "blush",
     ).url);
     expect(blushUrl.searchParams.get("q")).toContain("rose blush");
-    expect(blushUrl.searchParams.get("q")).toContain("site:notino.hr");
+    expect(blushUrl.searchParams.get("q")).toContain("site:douglas.hr");
     const concealerUrl = new URL(json.recommendations.find(
       (recommendation: { category: string }) => recommendation.category === "concealer",
     ).url);

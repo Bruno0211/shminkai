@@ -92,14 +92,15 @@ export function productSearchPrompt({
   domains: readonly string[];
 }) {
   const sites = domains.map((domain) => `site:${domain}`).join(" OR ");
-  return `Find up to 5 makeup products currently sold in Croatia that best match: "${query}" (shade/color direction: ${shadeGuidance}).
-Search ONLY these shops, using queries such as: ${query} (${sites})
+  return `You MUST use Google Search. Search: ${query} (${sites})
+From the search results, pick up to 8 single-product pages that best match "${query}" (shade/color direction: ${shadeGuidance}).
 Rules:
-- Every url must be a direct product page on one of these domains: ${domains.join(", ")}. Never link to search pages, category pages, or any other website.
-- Only include a product if you found its product page in the search results. Do not guess or construct URLs.
+- Only use results from these shops: ${domains.join(", ")}. Skip category, brand, search, and article pages.
+- For each product, "source" must be the search result link copied EXACTLY as you received it. Do not rewrite, shorten, or construct URLs.
+- "name" must be the product name as shown in that search result, including the shade when there is one.
 - Recommend a specific shade for every product, including foundation. Use the requested broad complexion depth and undertone for foundation; do not claim an exact skin-color measurement.
 - Rank products from strongest to weakest match and assign each a matchScore from 0 to 100.
 Respond with only JSON, no prose, in this shape:
-{"products":[{"brand":"...","name":"...","shade":"...","url":"https://...","matchScore":95,"matchReason":"..."}]}
+{"products":[{"brand":"...","name":"...","shade":"...","source":"https://...","matchScore":95,"matchReason":"..."}]}
 Write matchReason (one short sentence) in ${locale === "hr" ? "Croatian" : "English"}. Return {"products":[]} if nothing suitable is found.`;
 }

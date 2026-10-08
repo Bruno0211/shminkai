@@ -118,10 +118,10 @@ export const discoveredProductsSchema = z.object({
     brand: z.string().min(1).max(80),
     name: z.string().min(1).max(160),
     shade: z.string().max(160).optional(),
-    url: z.string().url(),
+    source: z.string().url(),
     matchScore: z.number().int().min(0).max(100).optional(),
     matchReason: z.string().min(1).max(240),
-  })).max(5),
+  })).max(8),
 });
 
 export const generationResponseSchema = z.object({

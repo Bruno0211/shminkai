@@ -87,12 +87,19 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Generate a structured makeup profile describing the look's color families, finishes, intensity, complexion depth and undertone, brow shade, and mascara shade, and use it as the shared plan for both image generation and product matching.
 - Load recommendations on demand when the user opens the product list; cache them only for the current page session.
 - While live product discovery is running, show one accessible animated progress bar and replace it with results when the search completes.
-- Discover real products with Gemini grounded Google Search, restricted to the allowed Croatian retailers configured in `src/lib/retailers.ts` (currently notino.hr, douglas.hr, dm.hr, mueller.hr).
-- Run one search per full-look category in parallel: complexion, concealer, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips. Return up to five discovered products per category and show at least three recommendations per category by supplementing sparse results with retailer-specific fallback searches.
+- Discover real products with Gemini grounded Google Search, restricted to the allowed Croatian retailers configured in `src/lib/retailers.ts` (currently douglas.hr, dm.hr, mueller.hr). Only add shops whose product links can be verified.
+- Run one search per full-look category in parallel: complexion, concealer, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips. Return up to five verified products per category and show at least three recommendations per category by supplementing sparse results with retailer-specific fallback searches.
 - Derive every search query from the validated structured makeup profile.
-- Keep only HTTPS product-page URLs on an allowed retailer domain; discard links that return 404/410 or redirect off the allowed shops or to a homepage.
-- If a category's search fails, times out, or yields no verified product, fall back to a Google search link restricted to the allowed retailers with `site:` operators.
-- Use a low thinking level for product searches so the full list loads in roughly 15 seconds.
+- Never show an unverified product link. Gemini chooses products from its Google Search results and returns each result's grounding redirect link exactly as received; it must not write shop URLs itself, because rewritten URLs often contain invented product ids.
+- Follow each grounding redirect to the page Google indexed, and keep it only if it matches the shop's single-product URL pattern (category, brand, search and article pages are rejected).
+- Prove the product exists before display:
+  - Douglas and Müller: the product page must load with HTTP 200 without redirecting to a non-product page. Pages that cannot be checked (bot challenges, timeouts, network errors) are rejected.
+  - dm: dm pages return 200 even for missing products, so the product id in the URL is looked up in dm's product detail service, which returns 404 for missing products.
+- Display the shop's own product title, and reject a product when that title does not contain most of the words of the name Gemini described, so the card never links to a different product.
+- Cache verification results for six hours to limit requests to the shops.
+- Drop any product that fails verification; never replace it with a guessed link.
+- If a category's search fails, times out, or yields fewer than three verified products, fill the remaining slots with Google search links each restricted to one allowed retailer with a `site:` operator, ranked below verified products.
+- Use a low thinking level for product searches so the full list loads in roughly 20–30 seconds including link verification.
 - Open product and search links safely in a new tab.
 - Recommend shade or color guidance in every category, including foundation. Foundation suggestions may use the broad visible complexion depth and undertone in the structured profile, but must tell users to verify the shade before buying rather than claiming an exact skin-color measurement.
 - Sort each category from strongest to weakest match, with the best match first.
