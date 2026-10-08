@@ -33,6 +33,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Place the home heading above the Polaroids and the supporting copy, CTA, and privacy note below them.
 - Place the localized “Prije/Poslije” or “Before/After” labels inside each Polaroid's bottom white caption area, below the image.
 - Load showcase pairs from `public/carousel` using filenames `before-{number}` and `after-{number}` with matching numbers. Support AVIF, JPEG, PNG, and WebP, order complete pairs numerically, and ignore unmatched files.
+- Show three numbered before/after pairs (six source images total) in the home carousel.
 - Show the bundled sample carousel when no complete custom image pair is available.
 - Carousel advances automatically every five seconds and also supports manual slide selection.
 - Show the primary “Kreiraj svoj look” / “Create your look” CTA.

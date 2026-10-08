@@ -19,6 +19,7 @@ test("home info and bilingual toggle work", async ({ page }) => {
   await page.goto("/");
   const brandAi = page.getByRole("link", { name: "ShminkAI home" }).locator("span");
   await expect(brandAi).toHaveCSS("font-style", "normal");
+  await expect(page.locator(".carousel-dots button")).toHaveCount(3);
   await expect(page.getByRole("heading", { name: "Makeup koji počinje s tobom." })).toBeVisible();
   await page.getByRole("button", { name: "Info" }).click();
   await expect(page.getByRole("dialog")).toContainText("Kako radi");
