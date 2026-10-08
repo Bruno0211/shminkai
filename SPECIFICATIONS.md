@@ -89,6 +89,8 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Compare the source and generated portraits after image generation. If originally open eyes become closed or obscured, regenerate once with an explicit correction; never return an image that still fails the second check.
 - Apply realistic makeup only; do not reshape facial features, change skin tone, or apply excessive beauty filtering.
 - Show the generated image, look name, download action, restart action, and overall explanation.
+- Show the generated image as a before/after comparison: the original (downscaled) photo is revealed over the generated look up to a draggable handle. The comparison works with pointer, touch, and keyboard (accessible range input), sweeps once on load to hint that it can be dragged (skipped when reduced motion is preferred), and keeps vertical page scrolling on touch devices.
+- Keep the original photo for the comparison only in the browser tab's session storage; never send it anywhere else or persist it beyond the session. If it is unavailable, show the generated image alone.
 - Show an action that opens product recommendations matched to the generated makeup.
 - Results are session-only and are not persisted to an account or database.
 - After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly.

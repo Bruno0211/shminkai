@@ -13,6 +13,7 @@ import {
 import { useEffect, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { AppHeader } from "@/components/ui";
+import { BeforeAfterSlider } from "@/components/before-after-slider";
 import {
   generationResponseSchema,
   recommendationResponseSchema,
@@ -48,6 +49,7 @@ const categoryTranslationKeys = {
 export default function ResultPage() {
   const { locale, t } = useLocale();
   const [result, setResult] = useState<GenerationResponse | null>(null);
+  const [beforeImage, setBeforeImage] = useState("");
   const [explanationOpen, setExplanationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -62,7 +64,13 @@ export default function ResultPage() {
     if (!raw) return;
     try {
       const parsed = generationResponseSchema.safeParse(JSON.parse(raw));
-      if (parsed.success) queueMicrotask(() => setResult(parsed.data));
+      const before = sessionStorage.getItem("kreirai-before");
+      if (parsed.success) {
+        queueMicrotask(() => {
+          setResult(parsed.data);
+          if (before?.startsWith("data:image/")) setBeforeImage(before);
+        });
+      }
     } catch {
       sessionStorage.removeItem("kreirai-result");
     }
@@ -127,7 +135,11 @@ export default function ResultPage() {
       <AppHeader />
       <div className="result-main">
         <div className="result-image">
-          <Image src={result.image} alt={result.lookName} fill unoptimized priority />
+          {beforeImage ? (
+            <BeforeAfterSlider before={beforeImage} after={result.image} alt={result.lookName} />
+          ) : (
+            <Image src={result.image} alt={result.lookName} fill unoptimized priority />
+          )}
         </div>
         <section className="result-copy">
           <p className="eyebrow">{t("resultEyebrow")}</p>

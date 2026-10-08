@@ -127,6 +127,40 @@ test("photo flow reaches the mocked result", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Kreiraj moj look/ })).toBeDisabled();
 });
 
+test("result compares the original photo with the makeup look", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate((profile) => {
+    const svg = (color: string) =>
+      `data:image/svg+xml;base64,${btoa(`<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500"><rect width="400" height="500" fill="${color}"/></svg>`)}`;
+    sessionStorage.setItem("kreirai-before", svg("#777777"));
+    sessionStorage.setItem("kreirai-result", JSON.stringify({
+      image: svg("#e10174"),
+      lookName: "Soft bronze",
+      analysis: {
+        skinTone: "medium",
+        undertone: "warm",
+        eyeColor: "brown",
+        hairColor: "brown",
+        faceShape: "oval",
+        eyeShape: "almond",
+        lipShape: "full",
+      },
+      explanation: ["Bronze complements the visible warm undertone."],
+      lookProfile: profile,
+    }));
+  }, lookProfile);
+  await page.goto("/result");
+
+  const slider = page.getByRole("slider", { name: "Usporedba prije i poslije" });
+  await expect(slider).toBeVisible();
+  await expect(page.getByRole("img", { name: "Soft bronze" })).toBeVisible();
+  await slider.focus();
+  await slider.press("Home");
+  await expect(slider).toHaveValue("0");
+  await slider.press("End");
+  await expect(slider).toHaveValue("100");
+});
+
 test("custom flow sends an optional outfit and shows the match", async ({ page }) => {
   let sentOutfit = false;
   await page.route("**/api/generate", async (route) => {

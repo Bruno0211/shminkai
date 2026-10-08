@@ -100,6 +100,7 @@ export const translations = {
     consentRequired: "Za nastavak je potrebna privola.",
     back: "Natrag",
     before: "Prije",
+    compareSlider: "Usporedba prije i poslije",
     after: "Poslije",
   },
   en: {
@@ -201,6 +202,7 @@ export const translations = {
     consentRequired: "Consent is required to continue.",
     back: "Back",
     before: "Before",
+    compareSlider: "Before and after comparison",
     after: "After",
   },
 } as const;

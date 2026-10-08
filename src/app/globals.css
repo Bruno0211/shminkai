@@ -468,6 +468,19 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
   position: relative;
 }
 .result-image img { height: 100%; object-fit: cover; width: 100%; }
+.compare { --compare-position: 50%; height: 100%; inset: 0; position: absolute; touch-action: pan-y; user-select: none; width: 100%; }
+.compare-before { clip-path: inset(0 calc(100% - var(--compare-position)) 0 0); inset: 0; position: absolute; }
+.compare-handle { background: white; bottom: 0; box-shadow: 0 0 12px rgba(0,0,0,.35); left: var(--compare-position); pointer-events: none; position: absolute; top: 0; transform: translateX(-50%); width: 3px; }
+.compare-handle span { align-items: center; background: #e10174; border: 3px solid white; border-radius: 999px; box-shadow: 0 4px 18px rgba(0,0,0,.35); color: white; display: flex; height: 44px; justify-content: center; left: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); width: 44px; }
+.compare-hinting .compare-before { transition: clip-path .6s ease-in-out; }
+.compare-hinting .compare-handle { transition: left .6s ease-in-out; }
+.compare-label { background: rgba(18,18,20,.62); border-radius: 999px; bottom: 18px; color: white; font-size: 10px; font-weight: 700; letter-spacing: .1em; padding: 7px 11px; pointer-events: none; position: absolute; text-transform: uppercase; }
+.compare-label-before { left: 18px; }
+.compare-label-after { right: 18px; }
+.compare-range { appearance: none; background: transparent; cursor: ew-resize; height: 100%; inset: 0; margin: 0; opacity: 0; position: absolute; touch-action: pan-y; width: 100%; }
+.compare-range::-webkit-slider-thumb { appearance: none; height: 100%; width: 44px; }
+.compare-range::-moz-range-thumb { border: 0; height: 100%; width: 44px; }
+.compare:has(.compare-range:focus-visible) .compare-handle span { outline: 3px solid #ff4d94; outline-offset: 3px; }
 .result-copy .eyebrow { color: #ff4d94; }
 .result-copy h1 { font-size: clamp(55px, 7vw, 84px); letter-spacing: -.05em; line-height: .87; margin: 0 0 28px; }
 .result-actions { display: flex; flex-wrap: wrap; gap: 10px; }

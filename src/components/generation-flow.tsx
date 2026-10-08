@@ -12,6 +12,22 @@ import type { Preferences } from "@/lib/schemas";
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_BYTES = 8 * 1024 * 1024;
 
+// Keeps the uploaded photo for this tab only, so the result page can show a
+// before/after comparison. Skipped if session storage is full.
+async function saveBeforePhoto(file: File) {
+  try {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+    sessionStorage.setItem("kreirai-before", dataUrl);
+  } catch {
+    sessionStorage.removeItem("kreirai-before");
+  }
+}
+
 export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
   const { locale, t } = useLocale();
   const router = useRouter();
@@ -82,7 +98,8 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
     setLoading(true);
     try {
       const form = new FormData();
-      form.append("photo", await resizeImage(photo));
+      const uploadedPhoto = await resizeImage(photo);
+      form.append("photo", uploadedPhoto);
       if (mode === "custom" && outfit) form.append("outfit", await resizeImage(outfit));
       form.append(
         "metadata",
@@ -96,6 +113,7 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
       const data: unknown = await response.json();
       if (!response.ok) throw new Error("Generation failed");
       sessionStorage.setItem("kreirai-result", JSON.stringify(data));
+      await saveBeforePhoto(uploadedPhoto);
       if (preview) URL.revokeObjectURL(preview);
       setPhoto(null);
       setPreview("");
