@@ -10,7 +10,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { AppHeader } from "@/components/ui";
 import { BeforeAfterSlider } from "@/components/before-after-slider";
@@ -59,6 +59,16 @@ export default function ResultPage() {
   const [activeProductCategory, setActiveProductCategory] =
     useState<ProductCategory>("complexion");
 
+  // Next.js keeps this page's state while hidden (Cache Components), so close
+  // its panels when leaving and drop cached products when a new look loads.
+  const shownImage = useRef("");
+  useLayoutEffect(() => {
+    return () => {
+      setProductsOpen(false);
+      setExplanationOpen(false);
+    };
+  }, []);
+
   useEffect(() => {
     const raw = sessionStorage.getItem("kreirai-result");
     if (!raw) return;
@@ -67,8 +77,15 @@ export default function ResultPage() {
       const before = sessionStorage.getItem("kreirai-before");
       if (parsed.success) {
         queueMicrotask(() => {
+          if (shownImage.current !== parsed.data.image) {
+            shownImage.current = parsed.data.image;
+            setRecommendations(null);
+            setRecommendationLocale("");
+            setProductsError("");
+            setActiveProductCategory("complexion");
+          }
           setResult(parsed.data);
-          if (before?.startsWith("data:image/")) setBeforeImage(before);
+          setBeforeImage(before?.startsWith("data:image/") ? before : "");
         });
       }
     } catch {
@@ -93,6 +110,7 @@ export default function ResultPage() {
     setProductsError("");
     if (recommendationLocale !== locale) setRecommendations(null);
     setProductsLoading(true);
+    const requestedImage = result.image;
     try {
       const response = await fetch("/api/recommendations", {
         method: "POST",
@@ -102,6 +120,8 @@ export default function ResultPage() {
       const data: unknown = await response.json();
       if (!response.ok) throw new Error("Recommendation request failed");
       const parsed = recommendationResponseSchema.parse(data);
+      // Ignore products for a look that has since been replaced by a new one.
+      if (shownImage.current !== requestedImage) return;
       setRecommendations(parsed.recommendations);
       setRecommendationLocale(locale);
     } catch {

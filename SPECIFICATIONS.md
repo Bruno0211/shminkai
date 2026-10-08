@@ -70,7 +70,14 @@ The key differentiator is feature-aware personalization rather than applying a g
 ## 8. Custom-look workflow
 
 - Include the same photo, validation, preview, and consent flow as random generation.
-- Let users provide occasion, intensity, preferred colors, finish, and free-text wishes.
+- Present preferences as a tap-first "build your look" panel instead of a text form:
+  - Occasion: icon cards (everyday, work, night out, wedding, party, photoshoot) in a wrapping grid so every card is fully visible, plus "Other" which reveals a short text field.
+  - Intensity: a soft–medium–bold slider; palette swatches become more saturated as intensity increases.
+  - Palette: a single row of eight tappable color swatches (nude, rose, peach, red, berry, plum, bronze, gold) from the color families the look profile uses, with the chosen color names shown below; up to three can be chosen.
+  - Finish: tiles with a visual texture preview for natural, matte, glowy, and satin.
+  - Wishes: one-tap suggestion chips that add or remove a wish, plus a free-text field.
+  - A live summary of the current choices, and a "Surprise me" button that fills in a random occasion, intensity, palette, and finish with a short shuffle animation (skipped when reduced motion is preferred).
+- Send the same validated preference fields as before (occasion, intensity, colors, finish, wishes); the panel changes only how they are chosen.
 - Validate and constrain all preferences before they are sent to AI.
 - Adapt user wishes to the person’s visible facial characteristics.
 - Offer an optional outfit photo (gallery upload only, no camera) with the same type and size validation as the face photo, plus preview and remove controls. The outfit option is available in the custom workflow only.
@@ -93,7 +100,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Keep the original photo for the comparison only in the browser tab's session storage; never send it anywhere else or persist it beyond the session. If it is unavailable, show the generated image alone.
 - Show an action that opens product recommendations matched to the generated makeup.
 - Results are session-only and are not persisted to an account or database.
-- After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly.
+- After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly. Because Next.js Cache Components preserves hidden pages' state, reset the photo, outfit, consent, loading overlay, and camera state whenever the creation page is hidden; look-builder preferences may be kept. The result page closes its dialogs when hidden and discards cached product recommendations when a different look is loaded.
 
 ## 10. Product recommendations
 

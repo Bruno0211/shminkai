@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Camera, Download, ImagePlus, Shirt, X } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocale } from "./locale-provider";
+import { LookBuilder } from "./look-builder";
 import { AppHeader } from "./ui";
 import { resizeImage } from "@/lib/resize-image";
 import type { Preferences } from "@/lib/schemas";
@@ -43,6 +44,23 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
     intensity: "soft",
     finish: "natural",
   });
+
+  // With Cache Components, Next.js hides this page instead of unmounting it and
+  // restores its state on return. Reset the one-off flow state when hidden so a
+  // new look always starts from an empty photo choice (and never a stale
+  // "generating" overlay); look-builder preferences are kept.
+  useLayoutEffect(() => {
+    return () => {
+      setPhoto(null);
+      setPreview("");
+      setOutfit(null);
+      setOutfitPreview("");
+      setConsent(false);
+      setLoading(false);
+      setError("");
+      setCameraOpen(false);
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -212,7 +230,7 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
 
           <section className="preferences-card">
             {mode === "custom" ? (
-              <PreferencesForm
+              <LookBuilder
                 value={preferences}
                 onChange={setPreferences}
                 outfit={(
@@ -434,82 +452,5 @@ function OutfitPicker({
         </label>
       )}
     </div>
-  );
-}
-
-function PreferencesForm({
-  value,
-  onChange,
-  outfit,
-}: {
-  value: Preferences;
-  onChange: (value: Preferences) => void;
-  outfit: ReactNode;
-}) {
-  const { t } = useLocale();
-  const set = <K extends keyof Preferences>(key: K, next: Preferences[K]) =>
-    onChange({ ...value, [key]: next });
-
-  return (
-    <>
-      <h2>{t("requirementsTitle")}</h2>
-      <label className="field">
-        <span>{t("occasion")}</span>
-        <input
-          value={value.occasion ?? ""}
-          maxLength={60}
-          placeholder="Date night, wedding…"
-          onChange={(event) => set("occasion", event.target.value)}
-        />
-      </label>
-      <div className="field">
-        <span>{t("intensity")}</span>
-        <div className="choice-grid">
-          {(["soft", "medium", "bold"] as const).map((item) => (
-            <button
-              type="button"
-              key={item}
-              className={value.intensity === item ? "active" : ""}
-              onClick={() => set("intensity", item)}
-            >
-              {t(item)}
-            </button>
-          ))}
-        </div>
-      </div>
-      <label className="field">
-        <span>{t("colors")}</span>
-        <input
-          value={value.colors ?? ""}
-          maxLength={120}
-          placeholder="Berry, bronze, rose…"
-          onChange={(event) => set("colors", event.target.value)}
-        />
-      </label>
-      <div className="field">
-        <span>{t("finish")}</span>
-        <div className="choice-grid four">
-          {(["natural", "matte", "glowy", "satin"] as const).map((item) => (
-            <button
-              type="button"
-              key={item}
-              className={value.finish === item ? "active" : ""}
-              onClick={() => set("finish", item)}
-            >
-              {t(item)}
-            </button>
-          ))}
-        </div>
-      </div>
-      {outfit}
-      <label className="field">
-        <span>{t("wishes")}</span>
-        <textarea
-          value={value.wishes ?? ""}
-          maxLength={500}
-          onChange={(event) => set("wishes", event.target.value)}
-        />
-      </label>
-    </>
   );
 }

@@ -161,6 +161,90 @@ test("result compares the original photo with the makeup look", async ({ page })
   await expect(slider).toHaveValue("100");
 });
 
+test("look builder sends tapped choices as preferences", async ({ page }) => {
+  let metadata: { preferences?: Record<string, string> } = {};
+  await page.route("**/api/generate", async (route) => {
+    const body = route.request().postDataBuffer()?.toString("utf8") ?? "";
+    metadata = JSON.parse(body.match(/name="metadata"\s+(\{[\s\S]*?\})\s+--/)?.[1] ?? "{}");
+    await route.fulfill({ status: 500, contentType: "application/json", body: "{}" });
+  });
+
+  await page.goto("/create/custom");
+  await page.getByRole("button", { name: "Večer van" }).click();
+  await page.getByRole("slider", { name: "Intenzitet" }).fill("2");
+  await page.getByRole("button", { name: "Bobičasta" }).click();
+  await page.getByRole("button", { name: "Zlatna" }).click();
+  await page.getByRole("button", { name: "Saten" }).click();
+  await page.getByRole("button", { name: /Mačje oko/ }).click();
+  await expect(page.locator(".look-summary")).toContainText("Večer van");
+  await expect(page.locator(".look-summary")).toContainText("Odvažno");
+
+  await page.getByLabel("Odaberi iz galerije").setInputFiles({
+    name: "face.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xdb]),
+  });
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Kreiraj moj look/ }).click();
+
+  await expect.poll(() => metadata.preferences).toEqual({
+    occasion: "Večer van",
+    intensity: "bold",
+    colors: "berry, gold",
+    finish: "satin",
+    wishes: "Mačje oko",
+  });
+});
+
+test("surprise me fills in a complete look", async ({ page }) => {
+  await page.goto("/create/custom");
+  await page.getByRole("button", { name: /Iznenadi me/ }).click();
+  await expect(page.locator(".occasion-card[aria-pressed=\"true\"]")).toHaveCount(1);
+  await expect(page.locator(".swatch[aria-pressed=\"true\"]")).not.toHaveCount(0);
+});
+
+test("starting a new look after a result begins from a clean photo step", async ({ page }) => {
+  await page.route("**/api/generate", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        image: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=",
+        lookName: "Soft bronze",
+        analysis: {
+          skinTone: "medium",
+          undertone: "warm",
+          eyeColor: "brown",
+          hairColor: "brown",
+          faceShape: "oval",
+          eyeShape: "almond",
+          lipShape: "full",
+        },
+        explanation: ["Bronze complements the visible warm undertone."],
+        lookProfile,
+      }),
+    });
+  });
+
+  await page.goto("/create/custom");
+  await page.getByLabel("Odaberi iz galerije").setInputFiles({
+    name: "face.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xdb]),
+  });
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Kreiraj moj look/ }).click();
+  await expect(page).toHaveURL(/\/result/);
+
+  await page.getByRole("link", { name: "Novi look" }).click();
+  await page.getByRole("button", { name: /Moje želje/ }).click();
+  await page.getByRole("link", { name: /Nastavi/ }).click();
+  await expect(page).toHaveURL(/\/create\/custom/);
+
+  await expect(page.getByText("Upoznajemo tvoje lice")).toBeHidden();
+  await expect(page.getByRole("button", { name: "Otvori kameru" })).toBeVisible();
+  await expect(page.getByRole("checkbox")).not.toBeChecked();
+});
+
 test("custom flow sends an optional outfit and shows the match", async ({ page }) => {
   let sentOutfit = false;
   await page.route("**/api/generate", async (route) => {
