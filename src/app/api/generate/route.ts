@@ -57,26 +57,26 @@ export async function POST(request: Request) {
       mimeType: photo.type,
       locale: metadata.locale,
     });
-    const [image, copy] = await Promise.all([
-      generateMakeupImage({
-        bytes,
-        mimeType: photo.type,
-        analysis,
-        mode: metadata.mode,
-        preferences: metadata.preferences,
-      }),
-      explainLook({
-        analysis,
-        locale: metadata.locale,
-        preferences: metadata.preferences,
-      }),
-    ]);
+    const copy = await explainLook({
+      analysis,
+      locale: metadata.locale,
+      preferences: metadata.preferences,
+    });
+    const image = await generateMakeupImage({
+      bytes,
+      mimeType: photo.type,
+      analysis,
+      mode: metadata.mode,
+      preferences: metadata.preferences,
+      lookProfile: copy.lookProfile,
+    });
 
     const result = generationResponseSchema.parse({
       image,
       analysis,
       lookName: copy.lookName,
       explanation: copy.explanation,
+      lookProfile: copy.lookProfile,
     });
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },

@@ -11,15 +11,28 @@ const analysis = {
   lipShape: "full",
 };
 
+const lookProfile = {
+  intensity: "soft",
+  complexionFinish: "radiant",
+  blushFamily: "peach",
+  bronzerFamily: "warm",
+  eyeFamilies: ["bronze", "gold"],
+  eyelinerColor: "brown",
+  lipFamily: "nude",
+  lipFinish: "satin",
+} as const;
+
 vi.mock("@/lib/gemini", () => ({
   analyzeFace: vi.fn(async () => analysis),
   generateMakeupImage: vi.fn(async () => "data:image/png;base64,AAAA"),
   explainLook: vi.fn(async () => ({
     lookName: "Soft bronze",
     explanation: ["Warm bronze complements the visible undertone."],
+    lookProfile,
   })),
 }));
 
+import { generateMakeupImage } from "@/lib/gemini";
 import { POST } from "./route";
 
 function validRequest(metadata: unknown = { mode: "random", locale: "en" }) {
@@ -43,7 +56,11 @@ describe("POST /api/generate", () => {
     await expect(response.json()).resolves.toMatchObject({
       lookName: "Soft bronze",
       analysis,
+      lookProfile,
     });
+    expect(generateMakeupImage).toHaveBeenCalledWith(
+      expect.objectContaining({ lookProfile }),
+    );
   });
 
   it("rejects invalid metadata", async () => {

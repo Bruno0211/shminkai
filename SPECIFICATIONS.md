@@ -71,19 +71,39 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Preserve the photographed person’s identity, expression, pose, face geometry, hair, clothing, lighting, background, and framing.
 - Apply realistic makeup only; do not reshape facial features, change skin tone, or apply excessive beauty filtering.
 - Show the generated image, look name, download action, restart action, and overall explanation.
+- Show an action that opens product recommendations matched to the generated makeup.
 - Results are session-only and are not persisted to an account or database.
 - After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly.
 
-## 10. AI integration
+## 10. Product recommendations
+
+- Generate a structured makeup profile describing the look's color families, finishes, and intensity, and use it as the shared plan for both image generation and product matching.
+- Load recommendations on demand when the user opens the product list; cache them only for the current page session.
+- While live product discovery is running, show one accessible animated progress bar and replace it with results when the search completes.
+- Search smaller face, eye, and lip product groups in parallel, targeting the full look across complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips.
+- For presentation responsiveness, return the first successful product group as a partial result instead of waiting for every group; fail only when no group succeeds.
+- Discover products live with Gemini Google Search grounding; do not use a static product catalog.
+- Require a successful grounded web-search step with source citations and return only validated direct HTTPS product-page links. Citation redirect hosts do not need to match retailer hosts.
+- Reject local, private, credential-bearing, non-HTTPS, and otherwise unsafe product URLs, and open accepted external links safely.
+- Prioritize products available from Croatian retailers and include global alternatives for key categories.
+- Include a mix of affordable and premium products.
+- For foundation and concealer, recommend only the formula or finish and instruct the user to choose their own shade; do not estimate an exact complexion shade from the photo.
+- Show brand, product name, shade/color guidance, price tier, market/retailer, and a concise reason why each item matches the look.
+- Support Croatian and English product-list UI and matching explanations.
+- State that product prices and availability can change.
+- Send only the structured makeup profile to the recommendation endpoint, never the face photo or generated image.
+
+## 11. AI integration
 
 - Use Google Gemini server-side; API credentials must never be exposed to the browser.
 - Use `gemini-3.8-flash` by default for visible-feature analysis and structured explanatory copy.
+- Use Gemini Google Search grounding with structured output for live product discovery; allow a separate product-search model through `GEMINI_PRODUCT_MODEL`.
 - Use a configurable Gemini image model for image editing.
 - Validate AI inputs and structured outputs with Zod.
 - AI prompts must avoid inferring ethnicity, health, age, identity, personality, or other sensitive traits.
 - Return safe user-facing errors without exposing provider internals or credentials.
 
-## 11. Privacy and security
+## 12. Privacy and security
 
 - Process photos ephemerally and never write them to the application filesystem or database.
 - Validate declared MIME type, file size, and image magic bytes server-side.
@@ -91,16 +111,15 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Present AI output as creative cosmetic inspiration, not professional or medical advice.
 - Confirm provider retention terms and applicable regional privacy requirements before production launch.
 
-## 12. Testing and quality
+## 13. Testing and quality
 
 - Unit-test schemas, localization, and structured AI response parsing.
 - Mock Gemini in automated API tests.
-- Cover mobile home, dialogs, language switching, workflow selection, live-camera entry and permission errors, photo upload, generation success/error states, and result display with Playwright.
+- Cover mobile home, dialogs, language switching, workflow selection, live-camera entry and permission errors, photo upload, generation success/error states, result display, product recommendations, safe outbound product links, and recommendation retry states with Playwright.
 - Required checks: ESLint, TypeScript, unit/API tests, production build, and core mobile end-to-end flows.
 
-## 13. Out of scope for the current version
+## 14. Out of scope for the current version
 
-- Product-search recommendations
 - Step-by-step makeup application instructions beyond generated explanations
 - Accounts
 - Saving or syncing previous looks

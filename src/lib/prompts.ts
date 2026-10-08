@@ -1,4 +1,4 @@
-import type { FacialAnalysis, Locale, Preferences } from "./schemas";
+import type { FacialAnalysis, Locale, LookProfile, Preferences } from "./schemas";
 
 export function analysisPrompt(locale: Locale) {
   return `Analyze only the visible cosmetic characteristics in this face photo.
@@ -11,10 +11,12 @@ export function imagePrompt({
   analysis,
   preferences,
   mode,
+  lookProfile,
 }: {
   analysis: FacialAnalysis;
   preferences?: Preferences;
   mode: "random" | "custom";
+  lookProfile: LookProfile;
 }) {
   const direction =
     mode === "random"
@@ -27,6 +29,7 @@ Apply makeup only: complexion finish, blush/bronzer, brows, eyeshadow, eyeliner/
 Do not reshape facial features, alter skin tone, add accessories, retouch skin texture excessively, or change hair.
 Visible cosmetic analysis: ${JSON.stringify(analysis)}.
 ${direction}
+Apply this exact makeup color and finish plan: ${JSON.stringify(lookProfile)}.
 The result should look achievable with real makeup, polished but not like a beauty filter.
 Return only the edited image.`;
 }
@@ -44,6 +47,8 @@ export function explanationPrompt({
 ${JSON.stringify(analysis)}
 User preferences: ${JSON.stringify(preferences ?? {})}
 Respond in ${locale === "hr" ? "Croatian" : "English"} as JSON with:
-{"lookName":"string","explanation":["string"]}.
+{"lookName":"string","explanation":["string"],"lookProfile":{"intensity":"soft|medium|bold","complexionFinish":"natural|matte|radiant|satin","blushFamily":"color family","bronzerFamily":"neutral|warm","eyeFamilies":["1-3 color families"],"eyelinerColor":"black|brown|plum","lipFamily":"color family","lipFinish":"matte|satin|glossy"}}.
+Allowed color families: neutral, rose, peach, coral, berry, mauve, red, nude, brown, bronze, gold, champagne, taupe, plum, black.
+The lookProfile must describe the makeup visibly applied in the generated look so it can be matched to real cosmetic products.
 Discuss color harmony and placement only. Do not make health, ethnicity, age, or personality claims.`;
 }
