@@ -290,7 +290,7 @@ function LiveCamera({
         <button className="dialog-close" onClick={onClose} aria-label={t("close")}>
           <X size={20} />
         </button>
-        <p className="eyebrow">kreirAI camera</p>
+        <p className="eyebrow">shminkAI camera</p>
         <h2 id="camera-title">{t("cameraTitle")}</h2>
         <div className="camera-view">
           <video ref={videoRef} playsInline muted aria-label={t("cameraTitle")} />

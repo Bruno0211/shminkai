@@ -12,11 +12,15 @@ import type { LookProfile } from "./schemas";
 
 const lookProfile: LookProfile = {
   intensity: "medium",
+  complexionDepth: "medium",
+  complexionUndertone: "warm",
   complexionFinish: "natural",
   blushFamily: "rose",
   bronzerFamily: "neutral",
   eyeFamilies: ["taupe"],
   eyelinerColor: "brown",
+  mascaraColor: "brown",
+  browColor: "brown",
   lipFamily: "mauve",
   lipFinish: "matte",
 };
@@ -40,7 +44,8 @@ describe("discoverProducts", () => {
     generateContent.mockResolvedValue({
       text: `Here you go: ${JSON.stringify({
         products: [
-          { brand: "Essence", name: "Blush", shade: "Rose", url: "https://www.notino.hr/essence/blush/", matchReason: "Rose." },
+          { brand: "Essence", name: "Blush", shade: "Rose", url: "https://www.notino.hr/essence/blush/", matchScore: 75, matchReason: "Rose." },
+          { brand: "Nars", name: "Best Blush", shade: "Rose", url: "https://www.douglas.hr/p/best-blush", matchScore: 96, matchReason: "Best rose match." },
           { brand: "Other", name: "Elsewhere", url: "https://www.amazon.de/blush", matchReason: "Off-list." },
           { brand: "Gone", name: "Missing", url: "https://www.douglas.hr/p/missing", matchReason: "404." },
         ],
@@ -52,15 +57,17 @@ describe("discoverProducts", () => {
     const results = await discoverProducts({ lookProfile, locale: "en" });
     const blush = results.filter((result) => result.category === "blush");
 
-    expect(blush).toEqual([expect.objectContaining({
+    expect(blush).toHaveLength(3);
+    expect(blush[0]).toEqual(expect.objectContaining({
       kind: "product",
-      brand: "Essence",
-      retailer: "Notino",
+      brand: "Nars",
+      retailer: "Douglas",
       shadeGuidance: "Rose",
-      url: "https://www.notino.hr/essence/blush/",
-    })]);
+      matchScore: 96,
+      url: "https://www.douglas.hr/p/best-blush",
+    }));
     expect(results.every((result) => !result.url.includes("amazon"))).toBe(true);
-    expect(generateContent).toHaveBeenCalledTimes(8);
+    expect(generateContent).toHaveBeenCalledTimes(9);
     expect(generateContent.mock.calls[0][0].config.tools).toEqual([{ googleSearch: {} }]);
   });
 
@@ -69,9 +76,12 @@ describe("discoverProducts", () => {
 
     const results = await discoverProducts({ lookProfile, locale: "hr" });
 
-    expect(results).toHaveLength(8);
+    expect(results).toHaveLength(27);
     expect(results.every((result) => result.kind === "search")).toBe(true);
-    expect(new URL(results[0].url).searchParams.get("q")).toContain("site:dm.hr");
+    expect(results.every((result) => result.matchScore > 0)).toBe(true);
+    expect(results.some((result) =>
+      new URL(result.url).searchParams.get("q")?.includes("site:dm.hr"),
+    )).toBe(true);
   });
 });
 

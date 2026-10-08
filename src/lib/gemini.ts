@@ -134,11 +134,15 @@ export async function explainLook({
             type: Type.OBJECT,
             required: [
               "intensity",
+              "complexionDepth",
+              "complexionUndertone",
               "complexionFinish",
               "blushFamily",
               "bronzerFamily",
               "eyeFamilies",
               "eyelinerColor",
+              "mascaraColor",
+              "browColor",
               "lipFamily",
               "lipFinish",
             ],
@@ -146,6 +150,14 @@ export async function explainLook({
               intensity: {
                 type: Type.STRING,
                 enum: ["soft", "medium", "bold"],
+              },
+              complexionDepth: {
+                type: Type.STRING,
+                enum: ["fair", "light", "medium", "tan", "deep"],
+              },
+              complexionUndertone: {
+                type: Type.STRING,
+                enum: ["cool", "neutral", "warm", "olive"],
               },
               complexionFinish: {
                 type: Type.STRING,
@@ -179,6 +191,14 @@ export async function explainLook({
               eyelinerColor: {
                 type: Type.STRING,
                 enum: ["black", "brown", "plum"],
+              },
+              mascaraColor: {
+                type: Type.STRING,
+                enum: ["black", "brown", "plum"],
+              },
+              browColor: {
+                type: Type.STRING,
+                enum: ["black", "brown", "taupe", "auburn", "blonde"],
               },
               lipFamily: {
                 type: Type.STRING,

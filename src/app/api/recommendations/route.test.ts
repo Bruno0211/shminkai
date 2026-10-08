@@ -13,11 +13,15 @@ const validBody = {
   locale: "en",
   lookProfile: {
     intensity: "medium",
+    complexionDepth: "medium",
+    complexionUndertone: "warm",
     complexionFinish: "natural",
     blushFamily: "rose",
     bronzerFamily: "neutral",
     eyeFamilies: ["taupe", "champagne"],
     eyelinerColor: "brown",
+    mascaraColor: "brown",
+    browColor: "brown",
     lipFamily: "mauve",
     lipFinish: "matte",
   },
@@ -38,18 +42,22 @@ describe("POST /api/recommendations", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("no-store");
-    expect(json.recommendations).toHaveLength(8);
+    expect(json.recommendations).toHaveLength(27);
     expect(json.recommendations.find(
       (recommendation: { category: string }) => recommendation.category === "blush",
     )).toMatchObject({
       kind: "search",
-      market: "hr",
+      matchScore: 40,
     });
     const blushUrl = new URL(json.recommendations.find(
       (recommendation: { category: string }) => recommendation.category === "blush",
     ).url);
     expect(blushUrl.searchParams.get("q")).toContain("rose blush");
     expect(blushUrl.searchParams.get("q")).toContain("site:notino.hr");
+    const concealerUrl = new URL(json.recommendations.find(
+      (recommendation: { category: string }) => recommendation.category === "concealer",
+    ).url);
+    expect(concealerUrl.searchParams.get("q")).toContain("concealer shade");
   });
 
   it("rejects invalid look metadata", async () => {

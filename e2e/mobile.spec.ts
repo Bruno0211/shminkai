@@ -2,11 +2,15 @@ import { expect, test } from "@playwright/test";
 
 const lookProfile = {
   intensity: "soft",
+  complexionDepth: "medium",
+  complexionUndertone: "warm",
   complexionFinish: "radiant",
   blushFamily: "peach",
   bronzerFamily: "warm",
   eyeFamilies: ["bronze", "gold"],
   eyelinerColor: "brown",
+  mascaraColor: "brown",
+  browColor: "brown",
   lipFamily: "nude",
   lipFinish: "satin",
 } as const;
@@ -101,18 +105,32 @@ test("matched products support retry, safe links, and both languages", async ({ 
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
-        recommendations: [{
-          id: "nars-light-reflecting-foundation",
-          category: "complexion",
-          brand: "NARS",
-          name: "Light Reflecting Foundation",
-          shadeGuidance: "Choose your own shade.",
-          priceTier: "premium",
-          market: "global",
-          retailer: "Sephora",
-          url: "https://www.sephora.com/product/nars-light-reflecting-advance-skincare-foundation-P479338",
-          matchReason: "Matches the radiant finish.",
-        }],
+        recommendations: [
+          {
+            id: "nars-light-reflecting-foundation",
+            category: "complexion",
+            brand: "NARS",
+            name: "Light Reflecting Foundation",
+            shadeGuidance: "Medium with warm undertones.",
+            priceTier: "premium",
+            matchScore: 96,
+            retailer: "Douglas",
+            url: "https://www.douglas.hr/p/nars-foundation",
+            matchReason: "Matches the radiant finish.",
+          },
+          {
+            id: "nars-radiant-concealer",
+            category: "concealer",
+            brand: "NARS",
+            name: "Radiant Creamy Concealer",
+            shadeGuidance: "Medium with warm undertones.",
+            priceTier: "premium",
+            matchScore: 94,
+            retailer: "Douglas",
+            url: "https://www.douglas.hr/p/nars-concealer",
+            matchReason: "Matches the complexion depth and undertone.",
+          },
+        ],
       }),
     });
   });
@@ -145,10 +163,15 @@ test("matched products support retry, safe links, and both languages", async ({ 
   await expect(dialog.getByRole("alert")).toContainText("trenutačno nisu dostupne");
   await dialog.getByRole("button", { name: "Pokušaj ponovno" }).click();
 
-  const productLink = dialog.getByRole("link", { name: /Pretraži proizvode/ });
+  const productLink = dialog.getByRole("link", { name: /Pretraži proizvode/ }).first();
   await expect(productLink).toBeVisible();
   await expect(productLink).toHaveAttribute("target", "_blank");
   await expect(productLink).toHaveAttribute("rel", "noopener noreferrer");
+  const categoryTabs = dialog.getByRole("tablist", { name: "Kategorije proizvoda" });
+  await expect(categoryTabs.getByRole("tab", { name: "Korektor" })).toBeVisible();
+  expect(await categoryTabs.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  await categoryTabs.getByRole("tab", { name: "Korektor" }).click();
+  await expect(dialog.getByRole("heading", { name: "Korektor" })).toBeVisible();
 
   await dialog.getByRole("button", { name: "Zatvori" }).click();
   await page.getByRole("button", { name: "EN", exact: true }).click();

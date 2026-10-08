@@ -4,7 +4,7 @@ import type {
   ProductCategory,
   ProductRecommendation,
 } from "./schemas";
-import { retailers } from "./retailers";
+import { retailers, type Retailer } from "./retailers";
 
 const croatianLabels: Record<string, string> = {
   natural: "prirodni",
@@ -15,8 +15,14 @@ const croatianLabels: Record<string, string> = {
   soft: "nježni",
   medium: "srednji",
   bold: "odvažni",
+  fair: "vrlo svijetla",
+  light: "svijetla",
+  tan: "preplanula",
+  deep: "duboka",
+  cool: "hladni",
   neutral: "neutralni",
   warm: "topli",
+  olive: "maslinasti",
   rose: "ružičasti",
   peach: "breskvasti",
   coral: "koraljni",
@@ -31,14 +37,18 @@ const croatianLabels: Record<string, string> = {
   taupe: "sivo-smeđi",
   plum: "boje šljive",
   black: "crni",
+  auburn: "kestenjasti",
+  blonde: "plavi",
 };
 
 function display(value: string, locale: Locale) {
   return locale === "hr" ? (croatianLabels[value] ?? value) : value;
 }
 
-function shoppingUrl(query: string, locale: Locale) {
-  const sites = retailers.map((retailer) => `site:${retailer.domain}`).join(" OR ");
+function shoppingUrl(query: string, locale: Locale, retailer?: Retailer) {
+  const sites = retailer
+    ? `site:${retailer.domain}`
+    : retailers.map((item) => `site:${item.domain}`).join(" OR ");
   const url = new URL("https://www.google.com/search");
   url.searchParams.set("hl", locale);
   url.searchParams.set("q", `${query} (${sites})`);
@@ -62,11 +72,15 @@ export function buildCategorySearches({
 }): CategorySearch[] {
   const {
     intensity,
+    complexionDepth,
+    complexionUndertone,
     complexionFinish,
     blushFamily,
     bronzerFamily,
     eyeFamilies,
     eyelinerColor,
+    mascaraColor,
+    browColor,
     lipFamily,
     lipFinish,
   } = lookProfile;
@@ -76,12 +90,29 @@ export function buildCategorySearches({
   return [
     {
       category: "complexion",
-      query: `${complexionFinish} finish foundation`,
+      query: `${complexionDepth} ${complexionUndertone} undertone ${complexionFinish} finish foundation shade`,
       name: hr
-        ? `Puder – ${display(complexionFinish, locale)} završetak`
-        : `${display(complexionFinish, locale)} finish foundation`,
-      shadeGuidance: hr ? "Odaberi nijansu koja odgovara tvojoj koži." : "Choose your own skin-matching shade.",
-      matchReason: hr ? "Traži formule sa završetkom ovog looka." : "Finds formulas matching this look's finish.",
+        ? `Puder – ${display(complexionDepth, locale)}, ${display(complexionUndertone, locale)} podton`
+        : `${display(complexionDepth, locale)}, ${display(complexionUndertone, locale)} foundation`,
+      shadeGuidance: hr
+        ? `${display(complexionDepth, locale)} dubina, ${display(complexionUndertone, locale)} podton`
+        : `${display(complexionDepth, locale)} depth, ${display(complexionUndertone, locale)} undertone`,
+      matchReason: hr
+        ? "Prati procijenjenu dubinu, podton i završetak tena."
+        : "Matches the estimated complexion depth, undertone, and finish.",
+    },
+    {
+      category: "concealer",
+      query: `${complexionDepth} ${complexionUndertone} undertone concealer shade`,
+      name: hr
+        ? `Korektor – ${display(complexionDepth, locale)}, ${display(complexionUndertone, locale)} podton`
+        : `${display(complexionDepth, locale)}, ${display(complexionUndertone, locale)} concealer`,
+      shadeGuidance: hr
+        ? `${display(complexionDepth, locale)} dubina, ${display(complexionUndertone, locale)} podton`
+        : `${display(complexionDepth, locale)} depth, ${display(complexionUndertone, locale)} undertone`,
+      matchReason: hr
+        ? "Prati procijenjenu dubinu i podton tena."
+        : "Matches the estimated complexion depth and undertone.",
     },
     {
       category: "blush",
@@ -113,17 +144,17 @@ export function buildCategorySearches({
     },
     {
       category: "mascara",
-      query: `${intensity} effect mascara`,
-      name: hr ? `${display(intensity, locale)} efekt maskare` : `${display(intensity, locale)} effect mascara`,
-      shadeGuidance: hr ? "Crna ili smeđa prema željenom intenzitetu." : "Black or brown for the preferred intensity.",
+      query: `${mascaraColor} ${intensity} effect mascara`,
+      name: hr ? `${display(mascaraColor, locale)} maskara` : `${display(mascaraColor, locale)} mascara`,
+      shadeGuidance: display(mascaraColor, locale),
       matchReason: hr ? "Prati intenzitet generiranog looka." : "Matches the generated look's intensity.",
     },
     {
       category: "brows",
-      query: `${intensity} brow makeup`,
-      name: hr ? `${display(intensity, locale)} proizvodi za obrve` : `${display(intensity, locale)} brow products`,
-      shadeGuidance: hr ? "Odaberi nijansu prema prirodnoj boji obrva." : "Choose a shade matching your natural brows.",
-      matchReason: hr ? "Dopunjuje intenzitet looka bez procjene nijanse." : "Complements the look without estimating your shade.",
+      query: `${browColor} ${intensity} brow makeup`,
+      name: hr ? `${display(browColor, locale)} proizvodi za obrve` : `${display(browColor, locale)} brow products`,
+      shadeGuidance: display(browColor, locale),
+      matchReason: hr ? "Prati nijansu i intenzitet obrva." : "Matches the brow shade and intensity.",
     },
     {
       category: "lips",
@@ -137,17 +168,22 @@ export function buildCategorySearches({
   ];
 }
 
-export function fallbackSearch(search: CategorySearch, locale: Locale): ProductRecommendation {
+export function fallbackSearch(
+  search: CategorySearch,
+  locale: Locale,
+  retailer?: Retailer,
+  rank = 0,
+): ProductRecommendation {
   return {
-    id: `search-${search.category}`,
+    id: `search-${search.category}-${retailer?.domain ?? "all"}`,
     kind: "search",
     category: search.category,
-    brand: retailers.map((retailer) => retailer.name).join(", "),
+    brand: retailer?.name ?? retailers.map((item) => item.name).join(", "),
     name: search.name,
     shadeGuidance: search.shadeGuidance,
-    market: "hr",
-    retailer: "Google",
-    url: shoppingUrl(search.query, locale),
+    matchScore: Math.max(1, 40 - rank),
+    retailer: retailer?.name ?? "Google",
+    url: shoppingUrl(search.query, locale, retailer),
     matchReason: search.matchReason,
   };
 }
@@ -156,5 +192,9 @@ export function buildShoppingSearches(input: {
   lookProfile: LookProfile;
   locale: Locale;
 }): ProductRecommendation[] {
-  return buildCategorySearches(input).map((search) => fallbackSearch(search, input.locale));
+  return buildCategorySearches(input).flatMap((search) =>
+    retailers.slice(0, 3).map((retailer, index) =>
+      fallbackSearch(search, input.locale, retailer, index),
+    ),
+  );
 }
