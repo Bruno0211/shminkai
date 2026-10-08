@@ -1,0 +1,13 @@
+---
+description: Keep the canonical product specification synchronized with requirement changes
+alwaysApply: true
+---
+
+# Maintain Product Specifications
+
+- `SPECIFICATIONS.md` is the canonical product specification for this project.
+- Whenever the user adds, changes, clarifies, or removes a product, UX, technical, privacy, visual, or testing requirement, update `SPECIFICATIONS.md` in the same change.
+- Preserve existing requirements unless the user explicitly replaces or removes them.
+- Resolve contradictions by recording the newest explicit requirement.
+- Keep the document implementation-neutral where possible, but record explicitly selected providers, models, constraints, and design tokens.
+- Update the `Last updated` date whenever the specification changes.

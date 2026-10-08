@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# kreirAI
 
-## Getting Started
+A mobile-first Croatian/English web app that analyzes visible facial features and uses Gemini image editing to create a personalized makeup look.
 
-First, run the development server:
+## Local setup
+
+Requires Node.js 22+.
+
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env.local`.
+3. Add a Google Gemini API key as `GEMINI_API_KEY`.
+4. Run `npm run dev` and open `http://localhost:3000`.
+
+The default models are `gemini-3.8-flash` for structured analysis and copy, and `gemini-2.5-flash-image` for makeup image editing. Override either model in `.env.local` if availability differs for your Google AI account.
+
+## Privacy and validation
+
+- Photos are accepted only as JPEG, PNG, or WebP up to 8 MB.
+- MIME type and file signature are validated server-side.
+- Images are sent directly to Gemini and are not written to disk or a database by this app.
+- API keys remain server-side; never prefix them with `NEXT_PUBLIC_`.
+- Results are held in browser session storage and disappear when the session is cleared.
+
+Confirm Google’s current data-processing and retention terms before a production launch, and provide the appropriate privacy notice for the regions where the app is offered.
+
+## Quality checks
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Unit and API tests mock Gemini and do not require an API key. End-to-end tests mock the generation route.
