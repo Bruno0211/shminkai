@@ -49,6 +49,9 @@ const categoryTranslationKeys = {
 export default function ResultPage() {
   const { locale, t } = useLocale();
   const [result, setResult] = useState<GenerationResponse | null>(null);
+  // False until session storage has been read; the page is prerendered and
+  // first renders without a result, which must not flash the error state.
+  const [resultChecked, setResultChecked] = useState(false);
   const [beforeImage, setBeforeImage] = useState("");
   const [backHref, setBackHref] = useState("/create");
   const [explanationOpen, setExplanationOpen] = useState(false);
@@ -72,13 +75,18 @@ export default function ResultPage() {
 
   useEffect(() => {
     const raw = sessionStorage.getItem("kreirai-result");
-    if (!raw) return;
+    const markChecked = () => queueMicrotask(() => setResultChecked(true));
+    if (!raw) {
+      markChecked();
+      return;
+    }
     try {
       const parsed = generationResponseSchema.safeParse(JSON.parse(raw));
       const before = sessionStorage.getItem("kreirai-before");
       const mode = sessionStorage.getItem("kreirai-mode");
       if (parsed.success) {
         queueMicrotask(() => {
+          setResultChecked(true);
           setBackHref(
             mode === "custom"
               ? "/create/custom"
@@ -96,9 +104,12 @@ export default function ResultPage() {
           setResult(parsed.data);
           setBeforeImage(before?.startsWith("data:image/") ? before : "");
         });
+      } else {
+        markChecked();
       }
     } catch {
       sessionStorage.removeItem("kreirai-result");
+      markChecked();
     }
   }, []);
 
@@ -147,6 +158,14 @@ export default function ResultPage() {
     }
   };
 
+  if (!result && !resultChecked) {
+    return (
+      <main className="result-shell" aria-busy="true">
+        <AppHeader backHref="/create" />
+      </main>
+    );
+  }
+
   if (!result) {
     return (
       <main className="result-shell">
@@ -189,7 +208,7 @@ export default function ResultPage() {
             <a
               className="secondary-button"
               href={result.image}
-              download="ShminkAI-look.png"
+              download="ShminkAI-look.jpg"
             >
               <Download size={17} /> {t("download")}
             </a>

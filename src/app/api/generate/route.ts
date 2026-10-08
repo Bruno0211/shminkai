@@ -142,6 +142,10 @@ export async function POST(request: Request) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
+    console.error(
+      "Look generation failed:",
+      error instanceof Error ? error.message : "Unknown provider error",
+    );
     return NextResponse.json(
       { error: "The look could not be generated." },
       { status: 502 },

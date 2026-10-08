@@ -112,6 +112,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Keep the original photo for the comparison only in the browser tab's session storage; never send it anywhere else or persist it beyond the session. If it is unavailable, show the generated image alone.
 - Show an action that opens product recommendations matched to the generated makeup.
 - Results are session-only and are not persisted to an account or database.
+- The result page is prerendered without a result; until session storage has been read it shows only the header, and it shows the error state only when no valid stored result exists, so a successful generation never flashes an error.
 - After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly. Because Next.js Cache Components preserves hidden pages' state, reset the photo, outfit, consent, loading overlay, and camera state whenever the creation page is hidden; look-builder preferences may be kept. The result page closes its dialogs when hidden and discards cached product recommendations when a different look is loaded.
 
 ## 10. Product recommendations
@@ -144,6 +145,10 @@ The key differentiator is feature-aware personalization rather than applying a g
 ## 11. AI integration
 
 - Use Google Gemini server-side; API credentials must never be exposed to the browser.
+- Retry Gemini requests that fail with temporary errors (HTTP 429, 500, 502, 503, 504) up to two more times with a short backoff (about 0.8 s, then 2 s); do not retry other errors or aborted requests. Log the underlying error server-side when a look still cannot be generated.
+- When the image model finishes without an image (e.g. finish reason IMAGE_OTHER), retry the image request the same way before failing.
+- Use a low thinking level for the structured analysis calls (face analysis, outfit analysis, look plan, eye check); default thinking made single calls take up to ~26 s.
+- Re-encode the generated image from Gemini's ~2–3 MB PNG to a high-quality JPEG (~100–150 KB) on the server before the eye check and before returning it, so the eye-check upload, the API response, and session storage stay small. A full look should take roughly 25–35 seconds.
 - Use `gemini-3.8-flash` by default for visible-feature analysis and structured explanatory copy.
 - Use a configurable Gemini image model for image editing.
 - Validate AI inputs and structured outputs with Zod.

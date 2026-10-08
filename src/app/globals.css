@@ -482,6 +482,9 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
   max-height: min(58dvh, 560px);
   overflow: hidden;
   position: relative;
+  /* Full width even when max-height caps it; otherwise aspect-ratio shrinks the
+     width and leaves empty space on the right. */
+  width: 100%;
 }
 .camera-view video { height: 100%; object-fit: cover; transform: scaleX(-1); width: 100%; }
 .camera-loading, .camera-error { color: var(--muted); font-size: 12px; line-height: 1.55; padding: 28px; position: absolute; text-align: center; }

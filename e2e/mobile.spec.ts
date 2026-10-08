@@ -243,6 +243,45 @@ test("photo flow reaches the mocked result", async ({ page }) => {
   ).toBeDisabled();
 });
 
+test("result page never flashes the error state while loading a result", async ({ page }) => {
+  await page.addInitScript((profile) => {
+    if (location.pathname !== "/result" || sessionStorage.getItem("skip-seed")) return;
+    sessionStorage.setItem("kreirai-result", JSON.stringify({
+      image: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=",
+      lookName: "Soft bronze",
+      analysis: {
+        skinTone: "medium",
+        undertone: "warm",
+        eyeColor: "brown",
+        hairColor: "brown",
+        faceShape: "oval",
+        eyeShape: "almond",
+        lipShape: "full",
+      },
+      explanation: ["Bronze complements the visible warm undertone."],
+      lookProfile: profile,
+    }));
+    // Record whether the error text is ever rendered, from the first paint on.
+    const seen = () => document.body?.innerText.includes("Nešto nije uspjelo");
+    (window as unknown as { errorFlashed: boolean }).errorFlashed = false;
+    new MutationObserver(() => {
+      if (seen()) (window as unknown as { errorFlashed: boolean }).errorFlashed = true;
+    }).observe(document, { childList: true, subtree: true, characterData: true });
+  }, lookProfile);
+
+  await page.goto("/result");
+  await expect(page.getByRole("heading", { name: "Soft bronze" })).toBeVisible();
+  expect(await page.evaluate(() => (window as unknown as { errorFlashed: boolean }).errorFlashed))
+    .toBe(false);
+
+  await page.evaluate(() => {
+    sessionStorage.clear();
+    sessionStorage.setItem("skip-seed", "1");
+  });
+  await page.goto("/result");
+  await expect(page.getByText("Nešto nije uspjelo")).toBeVisible();
+});
+
 test("result compares the original photo with the makeup look", async ({ page }) => {
   await page.goto("/");
   await page.evaluate((profile) => {
