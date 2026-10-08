@@ -1,11 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from "vitest";
-
-const { searchProducts } = vi.hoisted(() => ({
-  searchProducts: vi.fn(),
-}));
-
-vi.mock("@/lib/gemini", () => ({ searchProducts }));
+import { describe, expect, it } from "vitest";
 
 import { POST } from "./route";
 
@@ -32,34 +26,22 @@ function request(body: unknown) {
 }
 
 describe("POST /api/recommendations", () => {
-  beforeEach(() => {
-    searchProducts.mockReset();
-    searchProducts.mockResolvedValue([{
-      id: "complexion-0",
-      category: "complexion",
-      brand: "Example",
-      name: "Radiant Base",
-      shadeGuidance: "Choose your own shade.",
-      priceTier: "affordable",
-      market: "hr",
-      retailer: "Example Croatia",
-      url: "https://example.com/products/radiant-base",
-      matchReason: "Matches the natural complexion finish.",
-    }]);
-  });
-
-  it("returns validated matched products without caching", async () => {
+  it("returns tailored shopping searches without caching", async () => {
     const response = await POST(request(validBody));
     const json = await response.json();
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("no-store");
-    expect(json.recommendations).toHaveLength(1);
-    expect(json.recommendations[0]).toMatchObject({
-      category: "complexion",
+    expect(json.recommendations).toHaveLength(8);
+    expect(json.recommendations.find(
+      (recommendation: { category: string }) => recommendation.category === "blush",
+    )).toMatchObject({
+      brand: "Google Shopping",
       market: "hr",
     });
-    expect(searchProducts).toHaveBeenCalledWith(validBody);
+    expect(json.recommendations.find(
+      (recommendation: { category: string }) => recommendation.category === "blush",
+    ).url).toContain("rose+blush");
   });
 
   it("rejects invalid look metadata", async () => {
@@ -76,13 +58,4 @@ describe("POST /api/recommendations", () => {
     expect(response.status).toBe(400);
   });
 
-  it("returns a safe error when grounded search fails", async () => {
-    searchProducts.mockRejectedValueOnce(new Error("Search failed"));
-    const response = await POST(request(validBody));
-
-    expect(response.status).toBe(500);
-    await expect(response.json()).resolves.toEqual({
-      error: "Product recommendations are unavailable.",
-    });
-  });
 });
