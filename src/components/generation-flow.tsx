@@ -121,8 +121,10 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
                         <small>{t("galleryHint")}</small>
                       </span>
                       <input
+                        className="source-choice-input"
                         type="file"
                         accept="image/jpeg,image/png,image/webp"
+                        aria-label={t("chooseGallery")}
                         onChange={(event) => choosePhoto(event.target.files?.[0])}
                       />
                     </label>
