@@ -19,6 +19,24 @@ test("both generation options are selectable", async ({ page }) => {
   );
 });
 
+test("live camera opens and explains permission errors", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: async () => {
+          throw new DOMException("Permission denied", "NotAllowedError");
+        },
+      },
+    });
+  });
+  await page.goto("/create/random");
+  await page.getByRole("button", { name: "Otvori kameru" }).click();
+  const cameraDialog = page.getByRole("dialog", { name: "Fotografiraj se uživo" });
+  await expect(cameraDialog).toBeVisible();
+  await expect(cameraDialog.getByRole("alert")).toContainText("Dopusti pristup kameri");
+});
+
 test("photo flow reaches the mocked result", async ({ page }) => {
   await page.route("**/api/generate", async (route) => {
     await route.fulfill({
@@ -50,4 +68,7 @@ test("photo flow reaches the mocked result", async ({ page }) => {
   await page.getByRole("button", { name: /Kreiraj moj look/ }).click();
   await expect(page).toHaveURL(/\/result/);
   await expect(page.getByRole("heading", { name: "Soft bronze" })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole("button", { name: "Otvori kameru" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Kreiraj moj look/ })).toBeDisabled();
 });

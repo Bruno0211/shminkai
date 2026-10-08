@@ -39,29 +39,42 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Users can switch by swiping the card or selecting the synchronized side/bottom option list.
 - Each card has an information dialog, representative visual, and continuation CTA.
 
-## 6. Random-look workflow
+## 6. Photo capture
 
-- Let the user take a front-facing face photo or upload one from the gallery.
+- Offer two explicit photo sources in both generation workflows:
+  - Open the device camera and take a live, front-facing photo inside the application.
+  - Upload an existing photo from the device gallery or filesystem.
+- Replace the original single upload area with these two source buttons; do not present them as an additional duplicate control.
+- Use the browser MediaDevices API for the live camera preview.
+- Present the live preview in a focused pop-up camera frame with a pink `#e10174` border that matches the application.
+- Prefer the front-facing camera, show a face-positioning guide, and let the user capture or cancel.
+- Stop all camera tracks immediately after capture, cancellation, or component cleanup.
+- Explain camera permission errors and retain gallery upload as the fallback.
+- Live camera access requires HTTPS in production or localhost during development.
+
+## 7. Random-look workflow
+
 - Accept JPEG, PNG, and WebP files up to 8 MB.
 - Show preview and retry controls.
 - Require explicit consent before AI processing.
 - Generate a look informed by skin tone, undertone, eye color, hair color, face shape, eye shape, and lip shape.
 
-## 7. Custom-look workflow
+## 8. Custom-look workflow
 
 - Include the same photo, validation, preview, and consent flow as random generation.
 - Let users provide occasion, intensity, preferred colors, finish, and free-text wishes.
 - Validate and constrain all preferences before they are sent to AI.
 - Adapt user wishes to the person’s visible facial characteristics.
 
-## 8. Generated result
+## 9. Generated result
 
 - Preserve the photographed person’s identity, expression, pose, face geometry, hair, clothing, lighting, background, and framing.
 - Apply realistic makeup only; do not reshape facial features, change skin tone, or apply excessive beauty filtering.
 - Show the generated image, look name, download action, restart action, and overall explanation.
 - Results are session-only and are not persisted to an account or database.
+- After a successful generation, clear the previously selected/captured photo and consent state. Starting another look must always return to an empty photo-source choice and must never analyze the previous photo implicitly.
 
-## 9. AI integration
+## 10. AI integration
 
 - Use Google Gemini server-side; API credentials must never be exposed to the browser.
 - Use `gemini-3.8-flash` by default for visible-feature analysis and structured explanatory copy.
@@ -70,7 +83,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - AI prompts must avoid inferring ethnicity, health, age, identity, personality, or other sensitive traits.
 - Return safe user-facing errors without exposing provider internals or credentials.
 
-## 10. Privacy and security
+## 11. Privacy and security
 
 - Process photos ephemerally and never write them to the application filesystem or database.
 - Validate declared MIME type, file size, and image magic bytes server-side.
@@ -78,14 +91,14 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Present AI output as creative cosmetic inspiration, not professional or medical advice.
 - Confirm provider retention terms and applicable regional privacy requirements before production launch.
 
-## 11. Testing and quality
+## 12. Testing and quality
 
 - Unit-test schemas, localization, and structured AI response parsing.
 - Mock Gemini in automated API tests.
-- Cover mobile home, dialogs, language switching, workflow selection, photo upload, generation success/error states, and result display with Playwright.
+- Cover mobile home, dialogs, language switching, workflow selection, live-camera entry and permission errors, photo upload, generation success/error states, and result display with Playwright.
 - Required checks: ESLint, TypeScript, unit/API tests, production build, and core mobile end-to-end flows.
 
-## 12. Out of scope for the current version
+## 13. Out of scope for the current version
 
 - Product-search recommendations
 - Step-by-step makeup application instructions beyond generated explanations
