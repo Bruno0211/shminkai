@@ -145,7 +145,7 @@ test("matched products support retry, safe links, and both languages", async ({ 
   await expect(dialog.getByRole("alert")).toContainText("trenutačno nisu dostupne");
   await dialog.getByRole("button", { name: "Pokušaj ponovno" }).click();
 
-  const productLink = dialog.getByRole("link", { name: /Pogledaj proizvod/ });
+  const productLink = dialog.getByRole("link", { name: /Pretraži proizvode/ });
   await expect(productLink).toBeVisible();
   await expect(productLink).toHaveAttribute("target", "_blank");
   await expect(productLink).toHaveAttribute("rel", "noopener noreferrer");

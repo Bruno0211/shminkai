@@ -80,15 +80,12 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Generate a structured makeup profile describing the look's color families, finishes, and intensity, and use it as the shared plan for both image generation and product matching.
 - Load recommendations on demand when the user opens the product list; cache them only for the current page session.
 - While live product discovery is running, show one accessible animated progress bar and replace it with results when the search completes.
-- Search smaller face, eye, and lip product groups in parallel, targeting the full look across complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips.
-- For presentation responsiveness, return the first successful product group as a partial result instead of waiting for every group; fail only when no group succeeds.
-- Discover products live with Gemini Google Search grounding; do not use a static product catalog.
-- Require a successful grounded web-search step with source citations and return only validated direct HTTPS product-page links. Citation redirect hosts do not need to match retailer hosts.
-- Reject local, private, credential-bearing, non-HTTPS, and otherwise unsafe product URLs, and open accepted external links safely.
-- Prioritize products available from Croatian retailers and include global alternatives for key categories.
-- Include a mix of affordable and premium products.
+- For presentation reliability, generate instant, look-specific Google Shopping searches instead of waiting for Gemini grounded product discovery or using a static product catalog.
+- Provide one tailored search for each full-look category: complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips.
+- Derive every search query from the validated structured makeup profile and target shopping results relevant to Croatia.
+- Open generated HTTPS Google Shopping links safely in a new tab.
 - For foundation and concealer, recommend only the formula or finish and instruct the user to choose their own shade; do not estimate an exact complexion shade from the photo.
-- Show brand, product name, shade/color guidance, price tier, market/retailer, and a concise reason why each item matches the look.
+- Show the search category, shade/color guidance, market, and a concise reason why the search matches the look.
 - Support Croatian and English product-list UI and matching explanations.
 - State that product prices and availability can change.
 - Send only the structured makeup profile to the recommendation endpoint, never the face photo or generated image.
@@ -97,7 +94,6 @@ The key differentiator is feature-aware personalization rather than applying a g
 
 - Use Google Gemini server-side; API credentials must never be exposed to the browser.
 - Use `gemini-3.8-flash` by default for visible-feature analysis and structured explanatory copy.
-- Use Gemini Google Search grounding with structured output for live product discovery; allow a separate product-search model through `GEMINI_PRODUCT_MODEL`.
 - Use a configurable Gemini image model for image editing.
 - Validate AI inputs and structured outputs with Zod.
 - AI prompts must avoid inferring ethnicity, health, age, identity, personality, or other sensitive traits.
