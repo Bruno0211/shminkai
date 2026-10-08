@@ -4,6 +4,10 @@ export const translations = {
   hr: {
     brandTagline: "Tvoje crte. Tvoj personalizirani look.",
     homeTitle: "Makeup prilagođen tvom licu.",
+    homeTitlePrefix: "Makeup prilagođen",
+    homeTitleFace: "tvom licu.",
+    homeTitleNight: "tvojoj večeri.",
+    homeTitleOutfit: "tvojoj haljini.",
     homeBody:
       "AI analizira ton i podton kože, boju očiju i kose te oblik lica, očiju i usana kako bi kreirao makeup look prilagođen upravo tebi.",
     createLook: "Kreiraj personalizirani look",
@@ -115,6 +119,10 @@ export const translations = {
   en: {
     brandTagline: "Your features. Your personalized look.",
     homeTitle: "Makeup designed for your face.",
+    homeTitlePrefix: "Makeup designed for",
+    homeTitleFace: "your face.",
+    homeTitleNight: "your night out.",
+    homeTitleOutfit: "your outfit.",
     homeBody:
       "AI analyzes your skin tone and undertone, eye and hair color, and the shape of your face, eyes, and lips to create a makeup look tailored to you.",
     createLook: "Create a personalized look",

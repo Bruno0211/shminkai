@@ -40,7 +40,9 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Load showcase pairs from `public/carousel` using filenames `before-{number}` and `after-{number}` with matching numbers. Support AVIF, JPEG, PNG, and WebP, order complete pairs numerically, and ignore unmatched files.
 - Show three numbered before/after pairs (six source images total) in the home carousel.
 - Show the bundled sample carousel when no complete custom image pair is available.
-- Carousel advances automatically every five seconds and also supports manual slide selection.
+- The heading ending cycles “tvom licu. / tvojoj večeri. / tvojoj haljini.” (“your face. / your night out. / your outfit.”) in pink italics; the heading keeps the full static title as its accessible name.
+- One timer (about every 3.2 seconds) advances both the heading ending and the carousel, so they change together. On each change the current Polaroid pair tips over and falls out to the bottom left, then the next pair rises up from the bottom right; the pairs never overlap, and during the swap the carousel clips its bottom edge so cards never cross the text below. Manual slide selection jumps both and restarts the timer.
+- With reduced motion preferred, the heading and pair still change but without the falling and swinging animation.
 - Show the primary “Kreiraj personalizirani look” / “Create a personalized look” CTA.
 - Show an information button that opens an explanation of the application.
 - State that uploaded photos are not stored.
@@ -51,7 +53,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Show two stacked cards: a feature-led personalized recommendation and a personalized look guided by the user’s preferences.
 - Keep the workflow-selection heading compact and visually secondary to the card choices, using a substantially smaller size than the primary home heading.
 - Center the card stack horizontally in the page and make the cards large and visually prominent; keep enough of the darkened passive card visible behind the active card to make the stack clear.
-- Users can switch by swiping the card, selecting the synchronized side/bottom option list, or pressing a clearly visible right-edge arrow on the active card.
+- Users can switch by swiping the card or pressing a clearly visible right-edge arrow on the active card. Do not show a separate side or bottom list of option titles.
 - Align the “Prema mojim crtama” / “Prema mojim željama” option labels with the wordmark’s left content edge.
 - Each card has an information dialog, representative visual, and continuation CTA, and explains that facial characteristics are analyzed before the look is created.
 - Keep continuation-button arrows close to their labels without a large blank gap.

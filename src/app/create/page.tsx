@@ -45,20 +45,6 @@ export default function CreatePage() {
         </header>
 
         <div className="selector-layout">
-          <nav className="option-list" aria-label={t("choosePath")}>
-            {options.map((option, index) => (
-              <button
-                key={option.id}
-                className={index === active ? "active" : ""}
-                onClick={() => setActive(index)}
-                aria-current={index === active}
-              >
-                <small>0{index + 1}</small>
-                <strong>{t(option.title)}</strong>
-              </button>
-            ))}
-          </nav>
-
           <div
             className="option-deck"
             onTouchStart={(event) => (startX.current = event.touches[0].clientX)}

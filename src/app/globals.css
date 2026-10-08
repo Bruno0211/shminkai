@@ -207,7 +207,38 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
 }
 .look-card-before { left: 10%; transform: rotate(-4deg) translateY(8%); }
 .look-card-after { right: 10%; transform: rotate(3deg); z-index: 2; }
-.carousel-dots { bottom: 0; display: flex; gap: 7px; left: 50%; position: absolute; transform: translateX(-50%); }
+/* Home carousel swap, in sync with the headline ending: the old pair tips over
+   and falls out to the bottom left, then the next pair rises up from the bottom
+   right. While swapping, the carousel clips its bottom edge so cards drop out of
+   and rise into the frame without crossing the text below. */
+.look-carousel.is-swapping { clip-path: inset(-100vh -100vw 0 -100vw); }
+.look-pair { inset: 0; position: absolute; z-index: 2; }
+.look-pair.is-leaving { pointer-events: none; z-index: 3; }
+.is-leaving .look-card { transform-origin: 15% 100%; }
+.is-leaving .look-card-before { animation: fall-left-before .65s cubic-bezier(.55,0,.85,.35) both; }
+.is-leaving .look-card-after { animation: fall-left-after .65s cubic-bezier(.55,0,.85,.35) .05s both; }
+@keyframes fall-left-before {
+  0% { transform: rotate(-4deg) translateY(8%); }
+  25% { transform: translate(-3%, 6%) rotate(-11deg); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-85%, 170%) rotate(-40deg); }
+}
+@keyframes fall-left-after {
+  0% { transform: rotate(3deg); }
+  25% { transform: translate(-3%, 2%) rotate(-5deg); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-100%, 175%) rotate(-32deg); }
+}
+.is-entering .look-card-before { animation: rise-right-before .75s cubic-bezier(.2,.85,.3,1.1) .5s both; }
+.is-entering .look-card-after { animation: rise-right-after .75s cubic-bezier(.2,.85,.3,1.1) .6s both; }
+@keyframes rise-right-before { from { transform: translate(70%, 120%) rotate(18deg); } }
+@keyframes rise-right-after { from { transform: translate(55%, 125%) rotate(22deg); } }
+
+.headline-rotator { color: #ff4d94; display: block; font-style: italic; }
+.headline-ending { animation: ending-in .6s cubic-bezier(.2,.8,.2,1) both; display: inline-block; }
+@keyframes ending-in { from { filter: blur(10px); opacity: 0; transform: translateY(.35em); } }
+
+.carousel-dots { bottom: 0; z-index: 4; display: flex; gap: 7px; left: 50%; position: absolute; transform: translateX(-50%); }
 .carousel-dots button { background: #ff4d94; border: 0; border-radius: 20px; cursor: pointer; height: 6px; opacity: .3; padding: 0; transition: width .2s, opacity .2s; width: 6px; }
 .carousel-dots button[aria-current="true"] { opacity: .8; width: 22px; }
 
@@ -251,11 +282,6 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
 .section-heading h1 { font-size: clamp(32px, 3.5vw, 44px); letter-spacing: -.045em; line-height: .95; margin: 0; }
 .section-heading p { color: rgba(255,255,255,.6); font-size: 13px; line-height: 1.6; margin: 15px auto; max-width: 450px; }
 .selector-layout { align-items: center; display: flex; justify-content: center; margin: 10px 0 0; position: relative; }
-.option-list { display: flex; flex-direction: column; gap: 27px; left: 0; position: absolute; top: 50%; transform: translate(56px, -50%); }
-.option-list button { background: none; border: 0; color: white; cursor: pointer; opacity: .35; padding: 0; text-align: left; transition: opacity .2s; }
-.option-list button.active { opacity: 1; }
-.option-list small { display: block; font-size: 9px; letter-spacing: .15em; margin-bottom: 6px; }
-.option-list strong { font-family: var(--font-cormorant), serif; font-size: 23px; }
 .option-deck { aspect-ratio: 610 / 570; position: relative; width: min(52vw, 610px); }
 .option-card {
   align-items: center;
@@ -702,9 +728,7 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
 .look-builder button:focus-visible, .look-builder input:focus-visible { outline: 2px solid #ff4d94; outline-offset: 2px; }
 
 @media (max-width: 900px) {
-  .selector-layout { flex-direction: column; gap: 22px; }
-  .option-list { flex-direction: row; justify-content: flex-start; margin-left: 56px; order: 2; position: static; transform: none; width: calc(100% - 56px); }
-  .option-list button { text-align: left; }
+  .selector-layout { flex-direction: column; }
   .option-deck { aspect-ratio: auto; height: clamp(390px, 116vw, 510px); order: 1; width: min(calc(100% - 24px), 500px); }
   .option-card { height: calc(100% - 20px); }
   .option-card.passive { transform: translate(18px, 15px) rotate(3deg) scale(.97); }
@@ -737,7 +761,6 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
   .home-orb-one { height: 280px; width: 280px; }
   .dialog-card { max-height: calc(100dvh - 32px); overflow-y: auto; padding: 34px 27px 27px; }
   .selector-main { padding: 20px 18px 50px; }
-  .option-list strong { font-size: 19px; }
   .option-card { padding: clamp(18px, 5vw, 26px); }
   .option-visual { height: clamp(118px, 38vw, 172px); width: clamp(118px, 38vw, 172px); }
   .option-card-copy h2 { font-size: clamp(29px, 8vw, 37px); }
@@ -780,8 +803,6 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
   .look-card { width: min(61%, 220px); }
   .primary-button, .secondary-button { max-width: 100%; }
   .option-card { padding: 22px 18px; }
-  .option-list { gap: 18px; }
-  .option-list strong { font-size: 17px; }
   .choice-grid { grid-template-columns: repeat(2, 1fr); }
   .camera-dialog-actions { grid-template-columns: 1fr; }
   .result-actions { align-items: stretch; flex-direction: column; }

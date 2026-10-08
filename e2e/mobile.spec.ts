@@ -355,7 +355,7 @@ test("starting a new look after a result begins from a clean photo step", async 
   await expect(page).toHaveURL(/\/result/);
 
   await page.getByRole("link", { name: "Novi look" }).click();
-  await page.getByRole("button", { name: /Prema mojim željama/ }).click();
+  await page.getByRole("button", { name: "Promijeni opciju" }).click();
   await page.getByRole("link", { name: /Nastavi/ }).click();
   await expect(page).toHaveURL(/\/create\/custom/);
 
