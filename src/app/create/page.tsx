@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Info, Palette, Sparkles } from "lucide-react";
+import { ChevronRight, Info, Palette, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { AppHeader, Dialog } from "@/components/ui";
@@ -99,6 +99,11 @@ export default function CreatePage() {
                     {t("continue")}
                     <span>→</span>
                   </Link>
+                  {index === active && (
+                    <span className="option-slide-hint" aria-hidden="true">
+                      <ChevronRight size={18} strokeWidth={2} />
+                    </span>
+                  )}
                 </article>
               );
             })}

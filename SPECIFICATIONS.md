@@ -43,9 +43,11 @@ The key differentiator is feature-aware personalization rather than applying a g
 ## 5. Workflow selection
 
 - Show two stacked cards: “Surprise me” and “My wishes.”
-- The active card is visually prominent; the passive card sits darkened behind it.
-- Users can switch by swiping the card or selecting the synchronized side/bottom option list.
+- Make the cards large and visually prominent; keep enough of the darkened passive card visible behind the active card to make the stack clear.
+- Users can switch by swiping the card or selecting the synchronized side/bottom option list. Show a small right-edge arrow on the active card as a swipe affordance.
+- Align the “Prema mojim crtama” / “Prema mojim željama” option labels with the wordmark’s left content edge.
 - Each card has an information dialog, representative visual, and continuation CTA.
+- Keep continuation-button arrows close to their labels without a large blank gap.
 
 ## 6. Photo capture
 
