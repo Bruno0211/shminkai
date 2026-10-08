@@ -137,6 +137,7 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
       setPreview("");
       removeOutfit();
       setConsent(false);
+      sessionStorage.setItem("kreirai-mode", mode);
       router.push("/result");
     } catch {
       setError(t("error"));

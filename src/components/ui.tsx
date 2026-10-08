@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Info, X } from "lucide-react";
+import { ArrowLeft, Info, X } from "lucide-react";
 import { useEffect } from "react";
 import { useLocale } from "./locale-provider";
 
@@ -45,9 +45,18 @@ export function AppHeader({
   onInfo?: () => void;
   backHref?: string;
 }) {
+  const { t } = useLocale();
+
   return (
     <header className="app-header">
-      <Brand href={backHref ?? "/"} />
+      <div className="header-leading">
+        {backHref && (
+          <Link href={backHref} className="icon-button header-back" aria-label={t("back")}>
+            <ArrowLeft size={19} strokeWidth={1.8} />
+          </Link>
+        )}
+        <Brand />
+      </div>
       <div className="header-actions">
         <LanguageToggle />
         {onInfo && (

@@ -15,14 +15,14 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "ShminkAI — makeup koji počinje s tobom",
-  description: "Personalizirani AI makeup lookovi prilagođeni tvojim crtama.",
+  title: "ShminkAI — makeup prilagođen tvom licu",
+  description:
+    "AI analizira vidljive karakteristike lica i kreira personalizirani makeup look prilagođen tvojim crtama.",
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
   themeColor: "#f4eee9",
 };
 

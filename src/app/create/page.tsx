@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Info, Palette, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Info, Palette, Sparkles } from "lucide-react";
 import { useRef, useState } from "react";
 import { useLocale } from "@/components/locale-provider";
 import { AppHeader, Dialog } from "@/components/ui";
@@ -36,7 +36,7 @@ export default function CreatePage() {
 
   return (
     <main className="page-shell selector-shell">
-      <AppHeader />
+      <AppHeader backHref="/" />
       <div className="selector-main">
         <header className="section-heading">
           <p className="eyebrow">01 / 03</p>
@@ -100,9 +100,19 @@ export default function CreatePage() {
                     <span>→</span>
                   </Link>
                   {index === active && (
-                    <span className="option-slide-hint" aria-hidden="true">
-                      <ChevronRight size={18} strokeWidth={2} />
-                    </span>
+                    <button
+                      type="button"
+                      className="option-slide-hint"
+                      aria-label={t("switchOption")}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        setActive(active === 0 ? 1 : 0);
+                      }}
+                    >
+                      {active === 0
+                        ? <ChevronRight size={21} strokeWidth={2.4} />
+                        : <ChevronLeft size={21} strokeWidth={2.4} />}
+                    </button>
                   )}
                 </article>
               );

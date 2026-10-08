@@ -24,7 +24,12 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Render the wordmark as `ShminkAI`, with a capital `S`; render `AI` upright, not italic.
 - Use near-square Polaroid-style frames for showcase and generated-result images: a square crop, light border with a thicker bottom edge, subtle shadow, and minimally rounded corners. Do not use oval or arched image tops.
 - The design is mobile-first, responsive on larger screens, and accounts for mobile safe areas.
+- Support viewport widths from 320 px upward. Cards, typography, feature controls, spacing, dialogs, and result panels scale fluidly instead of relying on desktop-sized fixed dimensions.
+- No screen may create horizontal page overflow. Purpose-built rows such as color palettes, product categories, and product cards may scroll horizontally within their own bounded containers.
+- On short viewports, essential navigation and CTAs remain reachable through fluid scaling or vertical page/panel scrolling; content must never be clipped by a full-screen shell.
 - Interactive controls use accessible touch targets and visible keyboard focus states.
+- Keep browser pinch zoom available.
+- Show a visible back-arrow control on every step after the home page. It returns from workflow selection to home, from photo/preferences to workflow selection, and from a generated result to the photo/preferences workflow that produced it.
 
 ## 4. Home page
 
@@ -36,17 +41,19 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Show three numbered before/after pairs (six source images total) in the home carousel.
 - Show the bundled sample carousel when no complete custom image pair is available.
 - Carousel advances automatically every five seconds and also supports manual slide selection.
-- Show the primary “Kreiraj svoj look” / “Create your look” CTA.
+- Show the primary “Kreiraj personalizirani look” / “Create a personalized look” CTA.
 - Show an information button that opens an explanation of the application.
 - State that uploaded photos are not stored.
+- Frame all user-facing copy around facial-feature analysis and a makeup look tailored to the user. Do not describe the core experience as random.
 
 ## 5. Workflow selection
 
-- Show two stacked cards: “Surprise me” and “My wishes.”
-- Make the cards large and visually prominent; keep enough of the darkened passive card visible behind the active card to make the stack clear.
-- Users can switch by swiping the card or selecting the synchronized side/bottom option list. Show a small right-edge arrow on the active card as a swipe affordance.
+- Show two stacked cards: a feature-led personalized recommendation and a personalized look guided by the user’s preferences.
+- Keep the workflow-selection heading compact and visually secondary to the card choices, using a substantially smaller size than the primary home heading.
+- Center the card stack horizontally in the page and make the cards large and visually prominent; keep enough of the darkened passive card visible behind the active card to make the stack clear.
+- Users can switch by swiping the card, selecting the synchronized side/bottom option list, or pressing a clearly visible right-edge arrow on the active card.
 - Align the “Prema mojim crtama” / “Prema mojim željama” option labels with the wordmark’s left content edge.
-- Each card has an information dialog, representative visual, and continuation CTA.
+- Each card has an information dialog, representative visual, and continuation CTA, and explains that facial characteristics are analyzed before the look is created.
 - Keep continuation-button arrows close to their labels without a large blank gap.
 
 ## 6. Photo capture
@@ -63,7 +70,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Explain camera permission errors and retain gallery upload as the fallback.
 - Live camera access requires HTTPS in production or localhost during development.
 
-## 7. Random-look workflow
+## 7. Feature-led personalized workflow
 
 - Accept JPEG, PNG, and WebP files up to 8 MB.
 - Show preview and retry controls.
@@ -72,14 +79,14 @@ The key differentiator is feature-aware personalization rather than applying a g
 
 ## 8. Custom-look workflow
 
-- Include the same photo, validation, preview, and consent flow as random generation.
+- Include the same photo, validation, preview, and consent flow as the feature-led personalized workflow.
 - Present preferences as a tap-first "build your look" panel instead of a text form:
   - Occasion: icon cards (everyday, work, night out, wedding, party, photoshoot) in a wrapping grid so every card is fully visible, plus "Other" which reveals a short text field.
   - Intensity: a soft–medium–bold slider; palette swatches become more saturated as intensity increases.
   - Palette: a single row of eight tappable color swatches (nude, rose, peach, red, berry, plum, bronze, gold) from the color families the look profile uses, with the chosen color names shown below; up to three can be chosen.
   - Finish: tiles with a visual texture preview for natural, matte, glowy, and satin.
   - Wishes: one-tap suggestion chips that add or remove a wish, plus a free-text field.
-  - A live summary of the current choices, and a "Surprise me" button that fills in a random occasion, intensity, palette, and finish with a short shuffle animation (skipped when reduced motion is preferred).
+  - A live summary of the current choices, and a “Suggest a combination” button that proposes an occasion, intensity, palette, and finish with a short shuffle animation (skipped when reduced motion is preferred).
 - Send the same validated preference fields as before (occasion, intensity, colors, finish, wishes); the panel changes only how they are chosen.
 - Validate and constrain all preferences before they are sent to AI.
 - Adapt user wishes to the person’s visible facial characteristics.
@@ -154,6 +161,7 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Unit-test schemas, localization, and structured AI response parsing.
 - Mock Gemini in automated API tests.
 - Cover mobile home, dialogs, language switching, workflow selection, live-camera entry and permission errors, photo upload, generation success/error states, result display, product recommendations, safe outbound product links, and recommendation retry states with Playwright.
+- Run responsive layout checks across all user-facing routes and overlays at representative 320 px phone, standard phone, 760/761 px breakpoint, tablet, and desktop viewports, including short-height cases. Assert no horizontal page overflow and that essential controls remain visible or vertically reachable.
 - Required checks: ESLint, TypeScript, unit/API tests, production build, and core mobile end-to-end flows.
 
 ## 14. Out of scope for the current version

@@ -13,7 +13,15 @@ import {
   Wine,
   type LucideIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { useLocale } from "./locale-provider";
 import type { Locale, Preferences } from "@/lib/schemas";
 
@@ -80,7 +88,7 @@ export function LookBuilder({
   outfit,
 }: {
   value: Preferences;
-  onChange: (value: Preferences) => void;
+  onChange: Dispatch<SetStateAction<Preferences>>;
   outfit: ReactNode;
 }) {
   const { locale, t } = useLocale();
@@ -91,7 +99,9 @@ export function LookBuilder({
 
   useEffect(() => () => window.clearInterval(shuffleTimer.current), []);
 
-  const set = (next: Partial<Preferences>) => onChange({ ...value, ...next });
+  const set = (next: Partial<Preferences>) => {
+    onChange((current) => ({ ...current, ...next }));
+  };
 
   const chooseOccasion = (key: string) => {
     setOccasionKey(key);
@@ -116,7 +126,6 @@ export function LookBuilder({
       setOccasionKey(occasion.key);
       setColors(nextColors);
       return {
-        ...value,
         occasion: occasion.label[locale],
         intensity: pick(intensities),
         finish: pick(finishes),
@@ -125,13 +134,13 @@ export function LookBuilder({
     };
     window.clearInterval(shuffleTimer.current);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      onChange(randomLook());
+      onChange((current) => ({ ...current, ...randomLook() }));
       return;
     }
     let step = 0;
     setShuffling(true);
     shuffleTimer.current = window.setInterval(() => {
-      onChange(randomLook());
+      onChange((current) => ({ ...current, ...randomLook() }));
       step += 1;
       if (step >= SHUFFLE_STEPS) {
         window.clearInterval(shuffleTimer.current);

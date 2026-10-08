@@ -50,6 +50,7 @@ export default function ResultPage() {
   const { locale, t } = useLocale();
   const [result, setResult] = useState<GenerationResponse | null>(null);
   const [beforeImage, setBeforeImage] = useState("");
+  const [backHref, setBackHref] = useState("/create");
   const [explanationOpen, setExplanationOpen] = useState(false);
   const [productsOpen, setProductsOpen] = useState(false);
   const [productsLoading, setProductsLoading] = useState(false);
@@ -75,8 +76,16 @@ export default function ResultPage() {
     try {
       const parsed = generationResponseSchema.safeParse(JSON.parse(raw));
       const before = sessionStorage.getItem("kreirai-before");
+      const mode = sessionStorage.getItem("kreirai-mode");
       if (parsed.success) {
         queueMicrotask(() => {
+          setBackHref(
+            mode === "custom"
+              ? "/create/custom"
+              : mode === "random"
+                ? "/create/random"
+                : "/create",
+          );
           if (shownImage.current !== parsed.data.image) {
             shownImage.current = parsed.data.image;
             setRecommendations(null);
@@ -141,7 +150,7 @@ export default function ResultPage() {
   if (!result) {
     return (
       <main className="result-shell">
-        <AppHeader />
+        <AppHeader backHref="/create" />
         <div className="empty-result">
           <h1>{t("error")}</h1>
           <Link href="/create" className="primary-button">{t("startAgain")}</Link>
@@ -152,7 +161,7 @@ export default function ResultPage() {
 
   return (
     <main className="result-shell">
-      <AppHeader />
+      <AppHeader backHref={backHref} />
       <div className="result-main">
         <div className="result-image">
           {beforeImage ? (
@@ -205,7 +214,11 @@ export default function ResultPage() {
             role="dialog"
             aria-modal="true"
           >
-            <button className="dialog-close" onClick={() => setExplanationOpen(false)}>
+            <button
+              className="dialog-close"
+              onClick={() => setExplanationOpen(false)}
+              aria-label={t("close")}
+            >
               <X size={19} />
             </button>
             <p className="eyebrow">AI analysis</p>
