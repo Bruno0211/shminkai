@@ -52,3 +52,27 @@ Allowed color families: neutral, rose, peach, coral, berry, mauve, red, nude, br
 The lookProfile must describe the makeup visibly applied in the generated look so it can be matched to real cosmetic products.
 Discuss color harmony and placement only. Do not make health, ethnicity, age, or personality claims.`;
 }
+
+export function productSearchPrompt({
+  query,
+  shadeGuidance,
+  locale,
+  domains,
+}: {
+  query: string;
+  shadeGuidance: string;
+  locale: Locale;
+  domains: readonly string[];
+}) {
+  const sites = domains.map((domain) => `site:${domain}`).join(" OR ");
+  return `Find up to 2 makeup products currently sold in Croatia that best match: "${query}" (shade/color direction: ${shadeGuidance}).
+Search ONLY these shops, using queries such as: ${query} (${sites})
+Rules:
+- Every url must be a direct product page on one of these domains: ${domains.join(", ")}. Never link to search pages, category pages, or any other website.
+- Only include a product if you found its product page in the search results. Do not guess or construct URLs.
+- Prefer products whose shade or color matches the requested direction; name the matching shade when there is one.
+- For foundation or concealer, do not pick a skin shade; recommend the formula only.
+Respond with only JSON, no prose, in this shape:
+{"products":[{"brand":"...","name":"...","shade":"...","url":"https://...","matchReason":"..."}]}
+Write matchReason (one short sentence) in ${locale === "hr" ? "Croatian" : "English"}. Return {"products":[]} if nothing suitable is found.`;
+}

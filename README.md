@@ -13,6 +13,8 @@ Requires Node.js 22+.
 
 The default models are `gemini-3.8-flash` for structured analysis and copy, and `gemini-2.5-flash-image` for makeup image editing. Override either model in `.env.local` if availability differs for your Google AI account.
 
+Product recommendations use Gemini with Google Search grounding, limited to the shops listed in `src/lib/retailers.ts`. Set `GEMINI_SEARCH_MODEL` to use a different model for product search.
+
 ## Privacy and validation
 
 - Photos are accepted only as JPEG, PNG, or WebP up to 8 MB.

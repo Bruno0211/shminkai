@@ -80,10 +80,13 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Generate a structured makeup profile describing the look's color families, finishes, and intensity, and use it as the shared plan for both image generation and product matching.
 - Load recommendations on demand when the user opens the product list; cache them only for the current page session.
 - While live product discovery is running, show one accessible animated progress bar and replace it with results when the search completes.
-- For presentation reliability, generate instant, look-specific Google Shopping searches instead of waiting for Gemini grounded product discovery or using a static product catalog.
-- Provide one tailored search for each full-look category: complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips.
-- Derive every search query from the validated structured makeup profile and target shopping results relevant to Croatia.
-- Open generated HTTPS Google Shopping links safely in a new tab.
+- Discover real products with Gemini grounded Google Search, restricted to the allowed Croatian retailers configured in `src/lib/retailers.ts` (currently notino.hr, douglas.hr, dm.hr, mueller.hr).
+- Run one search per full-look category in parallel: complexion, blush, bronzer, eyeshadow, eyeliner, mascara, brows, and lips. Return up to two products per category.
+- Derive every search query from the validated structured makeup profile.
+- Keep only HTTPS product-page URLs on an allowed retailer domain; discard links that return 404/410 or redirect off the allowed shops or to a homepage.
+- If a category's search fails, times out, or yields no verified product, fall back to a Google search link restricted to the allowed retailers with `site:` operators.
+- Use a low thinking level for product searches so the full list loads in roughly 15 seconds.
+- Open product and search links safely in a new tab.
 - For foundation and concealer, recommend only the formula or finish and instruct the user to choose their own shade; do not estimate an exact complexion shade from the photo.
 - Show the search category, shade/color guidance, market, and a concise reason why the search matches the look.
 - Support Croatian and English product-list UI and matching explanations.

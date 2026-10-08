@@ -83,6 +83,7 @@ export const recommendationRequestSchema = z.object({
 
 export const productRecommendationSchema = z.object({
   id: z.string().min(1).max(80),
+  kind: z.enum(["product", "search"]).optional(),
   category: productCategorySchema,
   brand: z.string().min(1).max(80),
   name: z.string().min(1).max(160),
@@ -95,7 +96,17 @@ export const productRecommendationSchema = z.object({
 });
 
 export const recommendationResponseSchema = z.object({
-  recommendations: z.array(productRecommendationSchema).min(1).max(12),
+  recommendations: z.array(productRecommendationSchema).min(1).max(24),
+});
+
+export const discoveredProductsSchema = z.object({
+  products: z.array(z.object({
+    brand: z.string().min(1).max(80),
+    name: z.string().min(1).max(160),
+    shade: z.string().max(160).optional(),
+    url: z.string().url(),
+    matchReason: z.string().min(1).max(240),
+  })).max(5),
 });
 
 export const generationResponseSchema = z.object({

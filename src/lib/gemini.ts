@@ -18,13 +18,13 @@ const explanationSchema = z.object({
   lookProfile: lookProfileSchema,
 });
 
-function client() {
+export function client() {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
   return new GoogleGenAI({ apiKey });
 }
 
-function parseJson(text: string) {
+export function parseJson(text: string) {
   return JSON.parse(text.replace(/^```json\s*/i, "").replace(/\s*```$/, ""));
 }
 

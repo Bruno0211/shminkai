@@ -1,5 +1,11 @@
 // @vitest-environment node
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("server-only", () => ({}));
+vi.mock("@/lib/product-discovery", async () => {
+  const { buildShoppingSearches } = await import("@/lib/product-searches");
+  return { discoverProducts: vi.fn(async (input) => buildShoppingSearches(input)) };
+});
 
 import { POST } from "./route";
 
@@ -26,7 +32,7 @@ function request(body: unknown) {
 }
 
 describe("POST /api/recommendations", () => {
-  it("returns tailored shopping searches without caching", async () => {
+  it("returns recommendations without caching", async () => {
     const response = await POST(request(validBody));
     const json = await response.json();
 
@@ -36,12 +42,14 @@ describe("POST /api/recommendations", () => {
     expect(json.recommendations.find(
       (recommendation: { category: string }) => recommendation.category === "blush",
     )).toMatchObject({
-      brand: "Google Shopping",
+      kind: "search",
       market: "hr",
     });
-    expect(json.recommendations.find(
+    const blushUrl = new URL(json.recommendations.find(
       (recommendation: { category: string }) => recommendation.category === "blush",
-    ).url).toContain("rose+blush");
+    ).url);
+    expect(blushUrl.searchParams.get("q")).toContain("rose blush");
+    expect(blushUrl.searchParams.get("q")).toContain("site:notino.hr");
   });
 
   it("rejects invalid look metadata", async () => {

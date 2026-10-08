@@ -4,6 +4,7 @@ import type {
   ProductCategory,
   ProductRecommendation,
 } from "./schemas";
+import { retailers } from "./retailers";
 
 const croatianLabels: Record<string, string> = {
   natural: "prirodni",
@@ -37,20 +38,28 @@ function display(value: string, locale: Locale) {
 }
 
 function shoppingUrl(query: string, locale: Locale) {
+  const sites = retailers.map((retailer) => `site:${retailer.domain}`).join(" OR ");
   const url = new URL("https://www.google.com/search");
-  url.searchParams.set("tbm", "shop");
   url.searchParams.set("hl", locale);
-  url.searchParams.set("q", `${query} Croatia`);
+  url.searchParams.set("q", `${query} (${sites})`);
   return url.toString();
 }
 
-export function buildShoppingSearches({
+export type CategorySearch = {
+  category: ProductCategory;
+  query: string;
+  name: string;
+  shadeGuidance: string;
+  matchReason: string;
+};
+
+export function buildCategorySearches({
   lookProfile,
   locale,
 }: {
   lookProfile: LookProfile;
   locale: Locale;
-}): ProductRecommendation[] {
+}): CategorySearch[] {
   const {
     intensity,
     complexionFinish,
@@ -64,13 +73,7 @@ export function buildShoppingSearches({
   const hr = locale === "hr";
   const eyeColors = eyeFamilies.map((color) => display(color, locale)).join(", ");
 
-  const searches: Array<{
-    category: ProductCategory;
-    query: string;
-    name: string;
-    shadeGuidance: string;
-    matchReason: string;
-  }> = [
+  return [
     {
       category: "complexion",
       query: `${complexionFinish} finish foundation`,
@@ -132,16 +135,26 @@ export function buildShoppingSearches({
       matchReason: hr ? "Prati boju i završetak usana." : "Matches the lip color family and finish.",
     },
   ];
+}
 
-  return searches.map((search) => ({
-    id: `shopping-${search.category}`,
+export function fallbackSearch(search: CategorySearch, locale: Locale): ProductRecommendation {
+  return {
+    id: `search-${search.category}`,
+    kind: "search",
     category: search.category,
-    brand: "Google Shopping",
+    brand: retailers.map((retailer) => retailer.name).join(", "),
     name: search.name,
     shadeGuidance: search.shadeGuidance,
     market: "hr",
-    retailer: "Google Shopping",
+    retailer: "Google",
     url: shoppingUrl(search.query, locale),
     matchReason: search.matchReason,
-  }));
+  };
+}
+
+export function buildShoppingSearches(input: {
+  lookProfile: LookProfile;
+  locale: Locale;
+}): ProductRecommendation[] {
+  return buildCategorySearches(input).map((search) => fallbackSearch(search, input.locale));
 }

@@ -263,7 +263,8 @@ export default function ResultPage() {
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              {t("searchShopping")} · {product.retailer}
+                              {product.kind === "product" ? t("viewProduct") : t("searchShopping")}
+                              {" · "}{product.retailer}
                               <ExternalLink size={15} />
                             </a>
                           </article>
