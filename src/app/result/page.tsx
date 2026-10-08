@@ -148,7 +148,7 @@ export default function ResultPage() {
             <a
               className="secondary-button"
               href={result.image}
-              download="shminkAI-look.png"
+              download="ShminkAI-look.png"
             >
               <Download size={17} /> {t("download")}
             </a>

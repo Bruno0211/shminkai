@@ -39,6 +39,7 @@ vi.mock("@/lib/gemini", () => ({
   analyzeFace: vi.fn(async () => analysis),
   analyzeOutfit: vi.fn(async () => outfit),
   generateMakeupImage: vi.fn(async () => "data:image/png;base64,AAAA"),
+  preservesOpenEyes: vi.fn(async () => true),
   explainLook: vi.fn(async () => ({
     lookName: "Soft bronze",
     explanation: ["Warm bronze complements the visible undertone."],
@@ -46,7 +47,12 @@ vi.mock("@/lib/gemini", () => ({
   })),
 }));
 
-import { analyzeOutfit, explainLook, generateMakeupImage } from "@/lib/gemini";
+import {
+  analyzeOutfit,
+  explainLook,
+  generateMakeupImage,
+  preservesOpenEyes,
+} from "@/lib/gemini";
 import { POST } from "./route";
 
 function jpeg(name: string, bytes = [0xff, 0xd8, 0xff, 0xdb]) {
@@ -78,6 +84,29 @@ describe("POST /api/generate", () => {
     expect(generateMakeupImage).toHaveBeenCalledWith(
       expect.objectContaining({ lookProfile }),
     );
+  });
+
+  it("regenerates when open source eyes become closed or obscured", async () => {
+    vi.mocked(preservesOpenEyes)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+
+    const response = await POST(validRequest());
+
+    expect(response.status).toBe(200);
+    expect(generateMakeupImage).toHaveBeenCalledTimes(2);
+    expect(generateMakeupImage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ eyeCorrection: true }),
+    );
+  });
+
+  it("does not return an image that fails the open-eye check twice", async () => {
+    vi.mocked(preservesOpenEyes).mockResolvedValueOnce(false).mockResolvedValueOnce(false);
+
+    const response = await POST(validRequest());
+
+    expect(response.status).toBe(502);
+    expect(generateMakeupImage).toHaveBeenCalledTimes(2);
   });
 
   it("matches the look to an uploaded outfit in custom mode", async () => {

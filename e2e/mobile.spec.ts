@@ -17,12 +17,44 @@ const lookProfile = {
 
 test("home info and bilingual toggle work", async ({ page }) => {
   await page.goto("/");
+  const brandAi = page.getByRole("link", { name: "ShminkAI home" }).locator("span");
+  await expect(brandAi).toHaveCSS("font-style", "normal");
   await expect(page.getByRole("heading", { name: "Makeup koji počinje s tobom." })).toBeVisible();
   await page.getByRole("button", { name: "Info" }).click();
   await expect(page.getByRole("dialog")).toContainText("Kako radi");
   await page.getByRole("button", { name: "Close" }).click();
   await page.getByRole("button", { name: "EN", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Makeup that starts with you." })).toBeVisible();
+});
+
+test("home cards stay clear of the CTA across responsive sizes", async ({ page }) => {
+  const viewports = [
+    { width: 320, height: 568 },
+    { width: 390, height: 844 },
+    { width: 760, height: 900 },
+    { width: 761, height: 700 },
+    { width: 1024, height: 768 },
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+
+    const cards = await page.locator(".look-card").all();
+    const cardBoxes = await Promise.all(cards.map((card) => card.boundingBox()));
+    const buttonBox = await page.getByRole("link", { name: /Kreiraj svoj look/ }).boundingBox();
+
+    expect(buttonBox).not.toBeNull();
+    for (const cardBox of cardBoxes) {
+      expect(cardBox).not.toBeNull();
+      expect(cardBox!.y + cardBox!.height).toBeLessThan(buttonBox!.y);
+    }
+
+    const hasHorizontalOverflow = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(hasHorizontalOverflow).toBe(false);
+  }
 });
 
 test("both generation options are selectable", async ({ page }) => {
@@ -80,10 +112,16 @@ test("photo flow reaches the mocked result", async ({ page }) => {
     mimeType: "image/jpeg",
     buffer: Buffer.from([0xff, 0xd8, 0xff, 0xdb]),
   });
+  await expect(page.getByRole("link", { name: "Preuzmi fotografiju" })).toHaveAttribute(
+    "download",
+    "face.jpg",
+  );
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: /Kreiraj moj look/ }).click();
   await expect(page).toHaveURL(/\/result/);
   await expect(page.getByRole("heading", { name: "Soft bronze" })).toBeVisible();
+  await expect(page.locator(".result-image")).toHaveCSS("aspect-ratio", "1 / 1");
+  await expect(page.locator(".result-image")).toHaveCSS("border-radius", "6px");
   await page.goBack();
   await expect(page.getByRole("button", { name: "Otvori kameru" })).toBeVisible();
   await expect(page.getByRole("button", { name: /Kreiraj moj look/ })).toBeDisabled();

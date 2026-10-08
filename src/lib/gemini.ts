@@ -12,12 +12,24 @@ import {
   type OutfitProfile,
   type Preferences,
 } from "./schemas";
-import { analysisPrompt, explanationPrompt, imagePrompt, outfitPrompt } from "./prompts";
+import {
+  analysisPrompt,
+  explanationPrompt,
+  eyeStateVerificationPrompt,
+  imagePrompt,
+  outfitPrompt,
+} from "./prompts";
 
 const explanationSchema = z.object({
   lookName: z.string().min(1).max(120),
   explanation: z.array(z.string().min(1).max(500)).min(1).max(8),
   lookProfile: lookProfileSchema,
+});
+
+const eyeStateSchema = z.object({
+  sourceEyesOpen: z.boolean(),
+  generatedEyesOpen: z.boolean(),
+  generatedEyesObscured: z.boolean(),
 });
 
 export function client() {
@@ -123,6 +135,7 @@ export async function generateMakeupImage({
   mode,
   preferences,
   lookProfile,
+  eyeCorrection = false,
 }: {
   bytes: Buffer;
   mimeType: string;
@@ -130,13 +143,14 @@ export async function generateMakeupImage({
   mode: "random" | "custom";
   preferences?: Preferences;
   lookProfile: LookProfile;
+  eyeCorrection?: boolean;
 }) {
   const response = await client().models.generateContent({
     model: process.env.GEMINI_IMAGE_MODEL ?? "gemini-2.5-flash-image",
     contents: [{
       role: "user",
       parts: [
-        { text: imagePrompt({ analysis, mode, preferences, lookProfile }) },
+        { text: imagePrompt({ analysis, mode, preferences, lookProfile, eyeCorrection }) },
         { inlineData: { mimeType, data: bytes.toString("base64") } },
       ],
     }],
@@ -147,6 +161,49 @@ export async function generateMakeupImage({
   const image = parts.find((part) => part.inlineData?.data)?.inlineData;
   if (!image?.data) throw new Error("Gemini did not return an image");
   return `data:${image.mimeType ?? "image/png"};base64,${image.data}`;
+}
+
+export async function preservesOpenEyes({
+  sourceBytes,
+  sourceMimeType,
+  generatedImage,
+}: {
+  sourceBytes: Buffer;
+  sourceMimeType: string;
+  generatedImage: string;
+}) {
+  const generatedMatch = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(
+    generatedImage,
+  );
+  if (!generatedMatch) throw new Error("Generated image data is invalid");
+
+  const response = await client().models.generateContent({
+    model: process.env.GEMINI_ANALYSIS_MODEL ?? "gemini-3.8-flash",
+    contents: [{
+      role: "user",
+      parts: [
+        { text: eyeStateVerificationPrompt() },
+        { inlineData: { mimeType: sourceMimeType, data: sourceBytes.toString("base64") } },
+        { inlineData: { mimeType: generatedMatch[1], data: generatedMatch[2] } },
+      ],
+    }],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        required: ["sourceEyesOpen", "generatedEyesOpen", "generatedEyesObscured"],
+        properties: {
+          sourceEyesOpen: { type: Type.BOOLEAN },
+          generatedEyesOpen: { type: Type.BOOLEAN },
+          generatedEyesObscured: { type: Type.BOOLEAN },
+        },
+      },
+    },
+  });
+  const result = eyeStateSchema.parse(parseJson(response.text ?? ""));
+  return !result.sourceEyesOpen || (
+    result.generatedEyesOpen && !result.generatedEyesObscured
+  );
 }
 
 export async function explainLook({

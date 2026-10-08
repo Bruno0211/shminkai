@@ -7,7 +7,7 @@ export const translations = {
     homeBody:
       "AI analizira tvoje jedinstvene crte i stvara look koji ih naglašava — bez pravila, bez nagađanja.",
     createLook: "Kreiraj svoj look",
-    infoTitle: "Kako radi shminkAI?",
+    infoTitle: "Kako radi ShminkAI?",
     infoBody:
       "Fotografiraš lice, odabereš smjer i AI predlaže personalizirani makeup prema tonu kože, boji očiju i kose te obliku lica.",
     privacyShort: "Tvoja fotografija se ne sprema.",
@@ -66,6 +66,7 @@ export const translations = {
     whyThisLook: "Zašto ovaj look?",
     startAgain: "Novi look",
     download: "Preuzmi",
+    downloadPhoto: "Preuzmi fotografiju",
     shopThisLook: "Pronađi proizvode",
     matchedProducts: "Proizvodi za tvoj look",
     productsTitle: "Kreiraj ovaj look",
@@ -107,7 +108,7 @@ export const translations = {
     homeBody:
       "AI studies your unique features and creates a look that celebrates them — no rules, no guesswork.",
     createLook: "Create your look",
-    infoTitle: "How does shminkAI work?",
+    infoTitle: "How does ShminkAI work?",
     infoBody:
       "Photograph your face, choose a direction, and AI proposes personalized makeup based on your skin tone, eyes, hair, and face shape.",
     privacyShort: "Your photo is never stored.",
@@ -166,6 +167,7 @@ export const translations = {
     whyThisLook: "Why this look?",
     startAgain: "New look",
     download: "Download",
+    downloadPhoto: "Download photo",
     shopThisLook: "Shop this look",
     matchedProducts: "Products for your look",
     productsTitle: "Recreate this look",

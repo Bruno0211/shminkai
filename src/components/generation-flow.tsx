@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Camera, ImagePlus, Shirt, X } from "lucide-react";
+import { Camera, Download, ImagePlus, Shirt, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale } from "./locale-provider";
 import { AppHeader } from "./ui";
@@ -180,6 +180,14 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
                     onChange={(event) => choosePhoto(event.target.files?.[0])}
                   />
                 </label>
+                <a
+                  className="secondary-button"
+                  href={preview}
+                  download={photo?.name || "ShminkAI-photo.jpg"}
+                >
+                  <Download size={17} />
+                  {t("downloadPhoto")}
+                </a>
               </div>
             )}
           </section>
@@ -328,7 +336,7 @@ function LiveCamera({
         <button className="dialog-close" onClick={onClose} aria-label={t("close")}>
           <X size={20} />
         </button>
-        <p className="eyebrow">shminkAI camera</p>
+        <p className="eyebrow">ShminkAI camera</p>
         <h2 id="camera-title">{t("cameraTitle")}</h2>
         <div className="camera-view">
           <video ref={videoRef} playsInline muted aria-label={t("cameraTitle")} />

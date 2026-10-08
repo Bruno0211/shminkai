@@ -31,19 +31,28 @@ export function imagePrompt({
   preferences,
   mode,
   lookProfile,
+  eyeCorrection = false,
 }: {
   analysis: FacialAnalysis;
   preferences?: Preferences;
   mode: "random" | "custom";
   lookProfile: LookProfile;
+  eyeCorrection?: boolean;
 }) {
   const direction =
     mode === "random"
       ? "Choose a cohesive, contemporary makeup direction that naturally complements the visible features."
       : `Follow these user preferences when safe and visually coherent: ${JSON.stringify(preferences ?? {})}.`;
+  const facialHairDirection =
+    mode === "custom" && preferences?.wishes?.trim()
+      ? "Preserve all existing facial hair exactly—including beard, moustache, stubble, and sideburns—unless the user's free-text wishes explicitly request a facial-hair change. Unrelated wishes do not authorize any facial-hair change."
+      : "Preserve all existing facial hair exactly—including beard, moustache, stubble, and sideburns. Do not remove, add, shorten, reshape, recolor, fill, groom, or conceal it.";
 
   return `Edit the supplied portrait into a photorealistic makeup result.
 Preserve the same person's identity, expression, pose, face geometry, hair, clothing, lighting, background, and image framing.
+${facialHairDirection}
+Preserve the original eye state and gaze exactly. If the eyes are open in the source photo, they must remain open in the final image; never close, squint, or obscure them.
+${eyeCorrection ? "CRITICAL CORRECTION: A previous edit closed or obscured open eyes. Keep both source eyes clearly and naturally open in this result." : ""}
 Apply makeup only: complexion finish, blush/bronzer, brows, eyeshadow, eyeliner/mascara, and lip color.
 Do not reshape facial features, alter skin tone, add accessories, retouch skin texture excessively, or change hair.
 Visible cosmetic analysis: ${JSON.stringify(analysis)}.
@@ -51,6 +60,15 @@ ${direction}
 Apply this exact makeup color and finish plan: ${JSON.stringify(lookProfile)}.
 The result should look achievable with real makeup, polished but not like a beauty filter.
 Return only the edited image.`;
+}
+
+export function eyeStateVerificationPrompt() {
+  return `Compare the eyes in these two portraits. The first image is the source and the second is the generated makeup result.
+Return JSON with exactly these boolean fields: sourceEyesOpen, generatedEyesOpen, generatedEyesObscured.
+Set sourceEyesOpen to true when the visible eye or eyes are naturally open in the source.
+Set generatedEyesOpen to true only when those same eyes remain naturally open in the generated result.
+Set generatedEyesObscured to true if hair, makeup, artifacts, cropping, or another change prevents a clear comparison.
+Judge only eye openness and visibility.`;
 }
 
 export function explanationPrompt({

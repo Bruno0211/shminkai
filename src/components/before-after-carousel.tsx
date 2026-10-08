@@ -2,34 +2,37 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import type { CarouselLook } from "@/lib/carousel";
 import { useLocale } from "./locale-provider";
 
-const looks = [
-  { before: "/look-natural.svg", after: "/look-rose.svg" },
-  { before: "/look-rose.svg", after: "/look-natural.svg" },
-];
-
-export function BeforeAfterCarousel() {
+export function BeforeAfterCarousel({ looks }: { looks: CarouselLook[] }) {
   const [index, setIndex] = useState(0);
   const { t } = useLocale();
 
   useEffect(() => {
+    if (looks.length < 2) return;
     const timer = window.setInterval(
       () => setIndex((current) => (current + 1) % looks.length),
       5000,
     );
     return () => window.clearInterval(timer);
-  }, []);
+  }, [looks.length]);
 
-  const look = looks[index];
+  const look = looks[index] ?? looks[0];
+  if (!look) return null;
+
   return (
     <div className="look-carousel" aria-live="polite">
       <div className="look-card look-card-before">
-        <Image src={look.before} alt={`${t("before")} makeup`} fill priority sizes="(max-width: 700px) 58vw, 360px" />
+        <div className="look-card-photo">
+          <Image src={look.before} alt={`${t("before")} makeup`} fill priority sizes="(max-width: 700px) 68vw, 520px" />
+        </div>
         <span>{t("before")}</span>
       </div>
       <div className="look-card look-card-after">
-        <Image src={look.after} alt={`${t("after")} makeup`} fill priority sizes="(max-width: 700px) 58vw, 360px" />
+        <div className="look-card-photo">
+          <Image src={look.after} alt={`${t("after")} makeup`} fill priority sizes="(max-width: 700px) 68vw, 520px" />
+        </div>
         <span>{t("after")}</span>
       </div>
       <div className="carousel-dots" aria-label="Slides">

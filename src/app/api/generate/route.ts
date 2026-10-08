@@ -5,6 +5,7 @@ import {
   analyzeOutfit,
   explainLook,
   generateMakeupImage,
+  preservesOpenEyes,
 } from "@/lib/gemini";
 import {
   generateMetadataSchema,
@@ -16,6 +17,7 @@ import {
 export const maxDuration = 120;
 
 const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
+const MAX_IMAGE_ATTEMPTS = 2;
 const allowedTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 function matchesMagicBytes(bytes: Buffer, mimeType: string) {
@@ -103,14 +105,27 @@ export async function POST(request: Request) {
       preferences: metadata.preferences,
       outfit,
     });
-    const image = await generateMakeupImage({
-      bytes,
-      mimeType: photo.type,
-      analysis,
-      mode: metadata.mode,
-      preferences: metadata.preferences,
-      lookProfile: copy.lookProfile,
-    });
+    let image: string | undefined;
+    for (let attempt = 0; attempt < MAX_IMAGE_ATTEMPTS; attempt += 1) {
+      const candidate = await generateMakeupImage({
+        bytes,
+        mimeType: photo.type,
+        analysis,
+        mode: metadata.mode,
+        preferences: metadata.preferences,
+        lookProfile: copy.lookProfile,
+        eyeCorrection: attempt > 0,
+      });
+      if (await preservesOpenEyes({
+        sourceBytes: bytes,
+        sourceMimeType: photo.type,
+        generatedImage: candidate,
+      })) {
+        image = candidate;
+        break;
+      }
+    }
+    if (!image) throw new Error("Generated image did not preserve open eyes");
 
     const result = generationResponseSchema.parse({
       image,

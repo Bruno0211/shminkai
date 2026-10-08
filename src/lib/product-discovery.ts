@@ -70,6 +70,7 @@ export async function resolveSource(source: string): Promise<string | null> {
     const response = await fetch(source, {
       redirect: "manual",
       signal: AbortSignal.timeout(URL_CHECK_TIMEOUT_MS),
+      headers: { "User-Agent": USER_AGENT },
     });
     await response.body?.cancel();
     return response.headers.get("location");

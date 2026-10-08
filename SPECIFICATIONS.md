@@ -1,4 +1,4 @@
-# shminkAI Product Specification
+# ShminkAI Product Specification
 
 Last updated: 2026-10-08
 
@@ -6,7 +6,7 @@ This file is the canonical product specification. Update it whenever a requireme
 
 ## 1. Product vision
 
-shminkAI is a mobile-first web application that creates personalized makeup looks from a face photograph. AI analyzes visible cosmetic characteristics—including skin tone and undertone, eye and hair color, face shape, eye shape, and lip shape—and generates a realistic makeup look designed for those features.
+ShminkAI is a mobile-first web application that creates personalized makeup looks from a face photograph. AI analyzes visible cosmetic characteristics—including skin tone and undertone, eye and hair color, face shape, eye shape, and lip shape—and generates a realistic makeup look designed for those features.
 
 The key differentiator is feature-aware personalization rather than applying a generic makeup filter.
 
@@ -21,12 +21,19 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Background: `#121214`
 - Primary accent and CTA: `#e10174`
 - Secondary highlights: `#ff4d94`
+- Render the wordmark as `ShminkAI`, with a capital `S`; render `AI` upright, not italic.
+- Use near-square Polaroid-style frames for showcase and generated-result images: a square crop, light border with a thicker bottom edge, subtle shadow, and minimally rounded corners. Do not use oval or arched image tops.
 - The design is mobile-first, responsive on larger screens, and accounts for mobile safe areas.
 - Interactive controls use accessible touch targets and visible keyboard focus states.
 
 ## 4. Home page
 
-- Show two overlapping before/after makeup cards.
+- Show two prominent overlapping before/after Polaroid cards centered in the viewport without overwhelming the surrounding heading and supporting content.
+- Keep the Polaroid cards bounded within their carousel at every supported viewport so they never cover the supporting copy, CTA, or privacy note.
+- Place the home heading above the Polaroids and the supporting copy, CTA, and privacy note below them.
+- Place the localized “Prije/Poslije” or “Before/After” labels inside each Polaroid's bottom white caption area, below the image.
+- Load showcase pairs from `public/carousel` using filenames `before-{number}` and `after-{number}` with matching numbers. Support AVIF, JPEG, PNG, and WebP, order complete pairs numerically, and ignore unmatched files.
+- Show the bundled sample carousel when no complete custom image pair is available.
 - Carousel advances automatically every five seconds and also supports manual slide selection.
 - Show the primary “Kreiraj svoj look” / “Create your look” CTA.
 - Show an information button that opens an explanation of the application.
@@ -45,6 +52,7 @@ The key differentiator is feature-aware personalization rather than applying a g
   - Open the device camera and take a live, front-facing photo inside the application.
   - Upload an existing photo from the device gallery or filesystem.
 - Replace the original single upload area with these two source buttons; do not present them as an additional duplicate control.
+- After a photo is captured or selected, let the user download that original pre-generation image.
 - Use the browser MediaDevices API for the live camera preview.
 - Present the live preview in a focused pop-up camera frame with a pink `#e10174` border that matches the application.
 - Prefer the front-facing camera, show a face-positioning guide, and let the user capture or cancel.
@@ -76,6 +84,9 @@ The key differentiator is feature-aware personalization rather than applying a g
 ## 9. Generated result
 
 - Preserve the photographed person’s identity, expression, pose, face geometry, hair, clothing, lighting, background, and framing.
+- Preserve all visible facial hair, including beard, moustache, stubble, and sideburns, unless the user explicitly requests a facial-hair change in the custom workflow’s free-text wishes. Unrelated wishes must not alter facial hair.
+- Preserve the source photo's eye state and gaze. If the eyes are open in the original, they must remain open and unobscured in the generated result.
+- Compare the source and generated portraits after image generation. If originally open eyes become closed or obscured, regenerate once with an explicit correction; never return an image that still fails the second check.
 - Apply realistic makeup only; do not reshape facial features, change skin tone, or apply excessive beauty filtering.
 - Show the generated image, look name, download action, restart action, and overall explanation.
 - Show an action that opens product recommendations matched to the generated makeup.
