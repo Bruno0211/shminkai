@@ -21,6 +21,15 @@ export const preferencesSchema = z.object({
   wishes: z.string().trim().max(500).optional(),
 });
 
+export const outfitProfileSchema = z.object({
+  hasClothing: z.boolean(),
+  summary: z.string().max(120),
+  colors: z.array(z.string().min(1).max(40)).max(4),
+  pattern: z.enum(["solid", "print", "stripes", "checks", "textured", "mixed"]),
+  formality: z.enum(["casual", "smart", "evening", "formal"]),
+  metals: z.enum(["gold", "silver", "mixed", "none"]),
+});
+
 export const generateMetadataSchema = z.object({
   mode: z.enum(["random", "custom"]),
   locale: localeSchema,
@@ -115,10 +124,12 @@ export const generationResponseSchema = z.object({
   lookName: z.string().min(1).max(120),
   explanation: z.array(z.string().min(1).max(500)).min(1).max(8),
   lookProfile: lookProfileSchema,
+  outfit: outfitProfileSchema.optional(),
 });
 
 export type FacialAnalysis = z.infer<typeof facialAnalysisSchema>;
 export type Preferences = z.infer<typeof preferencesSchema>;
+export type OutfitProfile = z.infer<typeof outfitProfileSchema>;
 export type LookProfile = z.infer<typeof lookProfileSchema>;
 export type ColorFamily = z.infer<typeof colorFamilySchema>;
 export type ProductFinish = z.infer<typeof productFinishSchema>;

@@ -378,6 +378,15 @@ h1, h2, h3 { font-family: var(--font-cormorant), serif; }
 .choice-grid.four { grid-template-columns: repeat(2, 1fr); }
 .choice-grid button { background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 12px; cursor: pointer; font-size: 11px; min-height: 42px; }
 .choice-grid button.active { background: #e10174; color: white; }
+.outfit-upload { position: relative; width: 100%; }
+.outfit-selected { align-items: center; display: flex; gap: 12px; }
+.outfit-thumb { border: 1px solid var(--line); border-radius: 12px; flex: 0 0 auto; height: 72px; overflow: hidden; position: relative; width: 56px; }
+.outfit-thumb img { object-fit: cover; }
+.outfit-selected p { color: var(--muted); flex: 1; font-size: 11px; line-height: 1.45; margin: 0; min-width: 0; }
+.outfit-remove { align-items: center; background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 999px; cursor: pointer; display: inline-flex; font-size: 11px; gap: 5px; min-height: 40px; padding: 0 14px; }
+.outfit-match { align-items: flex-start; color: var(--muted); display: flex; font-size: 12px; gap: 7px; line-height: 1.45; margin: -4px 0 16px; }
+.outfit-match svg { color: var(--highlight); flex: 0 0 auto; margin-top: 2px; }
+.outfit-match strong { color: var(--foreground); font-weight: 600; }
 
 /* Live camera */
 .camera-backdrop {

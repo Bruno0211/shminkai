@@ -2,10 +2,11 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Camera, ImagePlus, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Camera, ImagePlus, Shirt, X } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocale } from "./locale-provider";
 import { AppHeader } from "./ui";
+import { resizeImage } from "@/lib/resize-image";
 import type { Preferences } from "@/lib/schemas";
 
 const VALID_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -16,6 +17,8 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
   const router = useRouter();
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState("");
+  const [outfit, setOutfit] = useState<File | null>(null);
+  const [outfitPreview, setOutfitPreview] = useState("");
   const [consent, setConsent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,6 +34,12 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
     };
   }, [preview]);
 
+  useEffect(() => {
+    return () => {
+      if (outfitPreview) URL.revokeObjectURL(outfitPreview);
+    };
+  }, [outfitPreview]);
+
   const choosePhoto = (file?: File) => {
     setError("");
     if (!file || !VALID_TYPES.includes(file.type) || file.size > MAX_BYTES) {
@@ -40,6 +49,23 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
     if (preview) URL.revokeObjectURL(preview);
     setPhoto(file);
     setPreview(URL.createObjectURL(file));
+  };
+
+  const chooseOutfit = (file?: File) => {
+    setError("");
+    if (!file || !VALID_TYPES.includes(file.type) || file.size > MAX_BYTES) {
+      setError(t("invalidPhoto"));
+      return;
+    }
+    if (outfitPreview) URL.revokeObjectURL(outfitPreview);
+    setOutfit(file);
+    setOutfitPreview(URL.createObjectURL(file));
+  };
+
+  const removeOutfit = () => {
+    if (outfitPreview) URL.revokeObjectURL(outfitPreview);
+    setOutfit(null);
+    setOutfitPreview("");
   };
 
   const submit = async () => {
@@ -56,7 +82,8 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
     setLoading(true);
     try {
       const form = new FormData();
-      form.append("photo", photo);
+      form.append("photo", await resizeImage(photo));
+      if (mode === "custom" && outfit) form.append("outfit", await resizeImage(outfit));
       form.append(
         "metadata",
         JSON.stringify({
@@ -72,6 +99,7 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
       if (preview) URL.revokeObjectURL(preview);
       setPhoto(null);
       setPreview("");
+      removeOutfit();
       setConsent(false);
       router.push("/result");
     } catch {
@@ -158,7 +186,17 @@ export function GenerationFlow({ mode }: { mode: "random" | "custom" }) {
 
           <section className="preferences-card">
             {mode === "custom" ? (
-              <PreferencesForm value={preferences} onChange={setPreferences} />
+              <PreferencesForm
+                value={preferences}
+                onChange={setPreferences}
+                outfit={(
+                  <OutfitPicker
+                    preview={outfitPreview}
+                    onChoose={chooseOutfit}
+                    onRemove={removeOutfit}
+                  />
+                )}
+              />
             ) : (
               <>
                 <p className="eyebrow">AI analysis</p>
@@ -327,12 +365,60 @@ function FeaturePills() {
   );
 }
 
+function OutfitPicker({
+  preview,
+  onChoose,
+  onRemove,
+}: {
+  preview: string;
+  onChoose: (file?: File) => void;
+  onRemove: () => void;
+}) {
+  const { t } = useLocale();
+  return (
+    <div className="field">
+      <span>{t("outfitLabel")}</span>
+      {preview ? (
+        <div className="outfit-selected">
+          <div className="outfit-thumb">
+            <Image src={preview} alt={t("outfitPreviewAlt")} fill unoptimized />
+          </div>
+          <p>{t("outfitSelected")}</p>
+          <button type="button" className="outfit-remove" onClick={onRemove}>
+            <X size={15} /> {t("outfitRemove")}
+          </button>
+        </div>
+      ) : (
+        <label className="source-choice source-choice-gallery outfit-upload">
+          <Shirt size={22} />
+          <span>
+            <strong>{t("outfitUpload")}</strong>
+            <small>{t("outfitHint")}</small>
+          </span>
+          <input
+            className="source-choice-input"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            aria-label={t("outfitUpload")}
+            onChange={(event) => {
+              onChoose(event.target.files?.[0]);
+              event.target.value = "";
+            }}
+          />
+        </label>
+      )}
+    </div>
+  );
+}
+
 function PreferencesForm({
   value,
   onChange,
+  outfit,
 }: {
   value: Preferences;
   onChange: (value: Preferences) => void;
+  outfit: ReactNode;
 }) {
   const { t } = useLocale();
   const set = <K extends keyof Preferences>(key: K, next: Preferences[K]) =>
@@ -389,6 +475,7 @@ function PreferencesForm({
           ))}
         </div>
       </div>
+      {outfit}
       <label className="field">
         <span>{t("wishes")}</span>
         <textarea

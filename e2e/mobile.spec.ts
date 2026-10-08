@@ -85,6 +85,56 @@ test("photo flow reaches the mocked result", async ({ page }) => {
   await expect(page.getByRole("button", { name: /Kreiraj moj look/ })).toBeDisabled();
 });
 
+test("custom flow sends an optional outfit and shows the match", async ({ page }) => {
+  let sentOutfit = false;
+  await page.route("**/api/generate", async (route) => {
+    sentOutfit = (route.request().postDataBuffer()?.toString("latin1") ?? "")
+      .includes('name="outfit"');
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        image: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4=",
+        lookName: "Evening berry",
+        analysis: {
+          skinTone: "medium",
+          undertone: "warm",
+          eyeColor: "brown",
+          hairColor: "brown",
+          faceShape: "oval",
+          eyeShape: "almond",
+          lipShape: "full",
+        },
+        explanation: ["Berry lips echo the dress."],
+        lookProfile,
+        outfit: {
+          hasClothing: true,
+          summary: "tamnoplava satenska haljina",
+          colors: ["tamnoplava"],
+          pattern: "solid",
+          formality: "evening",
+          metals: "gold",
+        },
+      }),
+    });
+  });
+
+  const jpeg = (name: string) => ({
+    name,
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xdb]),
+  });
+  await page.goto("/create/custom");
+  await page.getByLabel("Odaberi iz galerije").setInputFiles(jpeg("face.jpg"));
+  await page.getByLabel("Učitaj fotografiju odjeće").setInputFiles(jpeg("outfit.jpg"));
+  await expect(page.getByText("Makeup ćemo uskladiti s ovom odjećom.")).toBeVisible();
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: /Kreiraj moj look/ }).click();
+
+  await expect(page).toHaveURL(/\/result/);
+  expect(sentOutfit).toBe(true);
+  await expect(page.getByText("tamnoplava satenska haljina")).toBeVisible();
+});
+
 test("matched products support retry, safe links, and both languages", async ({ page }) => {
   let attempts = 0;
   await page.route("**/api/recommendations", async (route) => {

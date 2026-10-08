@@ -65,6 +65,13 @@ The key differentiator is feature-aware personalization rather than applying a g
 - Let users provide occasion, intensity, preferred colors, finish, and free-text wishes.
 - Validate and constrain all preferences before they are sent to AI.
 - Adapt user wishes to the person’s visible facial characteristics.
+- Offer an optional outfit photo (gallery upload only, no camera) with the same type and size validation as the face photo, plus preview and remove controls. The outfit option is available in the custom workflow only.
+- Analyze only the clothing and accessories in the outfit photo (colors, pattern, formality, metal tones); ignore any person shown. Run outfit analysis in parallel with face analysis.
+- Use the outfit to shape the makeup plan and include one explanation point about how the makeup complements it. Explicit user preferences take priority over the outfit.
+- The outfit never changes the generated image's clothing and is never sent to the image model or the product recommendation endpoint.
+- If the outfit photo shows no clothing or its analysis fails, generate the look without it.
+- Show a short "Matched to your outfit" summary on the result.
+- Downscale face and outfit photos in the browser before upload (longest edge 1600 px) to keep requests small.
 
 ## 9. Generated result
 

@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   Download,
   ExternalLink,
+  Shirt,
   ShoppingBag,
   Sparkles,
   X,
@@ -127,6 +128,12 @@ export default function ResultPage() {
         <section className="result-copy">
           <p className="eyebrow">{t("resultEyebrow")}</p>
           <h1>{result.lookName}</h1>
+          {result.outfit && (
+            <p className="outfit-match">
+              <Shirt size={15} />
+              <span><strong>{t("outfitMatched")}:</strong> {result.outfit.summary}</span>
+            </p>
+          )}
           <div className="result-actions">
             <button
               className="primary-button"
@@ -172,6 +179,7 @@ export default function ResultPage() {
               <span>{result.analysis.eyeColor}</span>
               <span>{result.analysis.faceShape}</span>
               <span>{result.analysis.hairColor}</span>
+              {result.outfit?.colors.map((color) => <span key={color}>{color}</span>)}
             </div>
             <ul className="explanation-list">
               {result.explanation.map((item) => <li key={item}>{item}</li>)}

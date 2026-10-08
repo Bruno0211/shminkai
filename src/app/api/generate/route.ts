@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { analyzeFace, explainLook, generateMakeupImage } from "@/lib/gemini";
+import {
+  analyzeFace,
+  analyzeOutfit,
+  explainLook,
+  generateMakeupImage,
+} from "@/lib/gemini";
 import {
   generateMetadataSchema,
   generationResponseSchema,
+  type Locale,
+  type OutfitProfile,
 } from "@/lib/schemas";
 
 export const maxDuration = 120;
@@ -23,6 +30,30 @@ function matchesMagicBytes(bytes: Buffer, mimeType: string) {
   return false;
 }
 
+function isAllowedImage(file: File) {
+  return file.size > 0 && file.size <= MAX_PHOTO_BYTES && allowedTypes.has(file.type);
+}
+
+async function readImage(file: File) {
+  const bytes = Buffer.from(await file.arrayBuffer());
+  return matchesMagicBytes(bytes, file.type) ? bytes : null;
+}
+
+// The outfit only steers the makeup plan, so a failed or clothing-free
+// analysis is ignored rather than failing the whole generation.
+async function safeAnalyzeOutfit(bytes: Buffer, mimeType: string, locale: Locale) {
+  try {
+    const outfit = await analyzeOutfit({ bytes, mimeType, locale });
+    return outfit.hasClothing ? outfit : undefined;
+  } catch (error) {
+    console.error(
+      "Outfit analysis failed:",
+      error instanceof Error ? error.message : "Unknown provider error",
+    );
+    return undefined;
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const form = await request.formData();
@@ -32,12 +63,12 @@ export async function POST(request: Request) {
     if (!(photo instanceof File) || typeof metadataRaw !== "string") {
       return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
-    if (
-      photo.size === 0
-      || photo.size > MAX_PHOTO_BYTES
-      || !allowedTypes.has(photo.type)
-    ) {
+    if (!isAllowedImage(photo)) {
       return NextResponse.json({ error: "Invalid image." }, { status: 400 });
+    }
+    const outfitFile = form.get("outfit");
+    if (outfitFile !== null && (!(outfitFile instanceof File) || !isAllowedImage(outfitFile))) {
+      return NextResponse.json({ error: "Invalid outfit image." }, { status: 400 });
     }
 
     let metadataJson: unknown;
@@ -47,20 +78,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid metadata." }, { status: 400 });
     }
     const metadata = generateMetadataSchema.parse(metadataJson);
-    const bytes = Buffer.from(await photo.arrayBuffer());
-    if (!matchesMagicBytes(bytes, photo.type)) {
-      return NextResponse.json({ error: "Invalid image content." }, { status: 400 });
+    if (outfitFile && metadata.mode !== "custom") {
+      return NextResponse.json({ error: "Invalid request." }, { status: 400 });
     }
 
-    const analysis = await analyzeFace({
-      bytes,
-      mimeType: photo.type,
-      locale: metadata.locale,
-    });
+    const bytes = await readImage(photo);
+    if (!bytes) {
+      return NextResponse.json({ error: "Invalid image content." }, { status: 400 });
+    }
+    const outfitBytes = outfitFile ? await readImage(outfitFile) : null;
+    if (outfitFile && !outfitBytes) {
+      return NextResponse.json({ error: "Invalid outfit image content." }, { status: 400 });
+    }
+
+    const [analysis, outfit] = await Promise.all([
+      analyzeFace({ bytes, mimeType: photo.type, locale: metadata.locale }),
+      outfitFile && outfitBytes
+        ? safeAnalyzeOutfit(outfitBytes, outfitFile.type, metadata.locale)
+        : Promise.resolve<OutfitProfile | undefined>(undefined),
+    ]);
     const copy = await explainLook({
       analysis,
       locale: metadata.locale,
       preferences: metadata.preferences,
+      outfit,
     });
     const image = await generateMakeupImage({
       bytes,
@@ -77,6 +118,7 @@ export async function POST(request: Request) {
       lookName: copy.lookName,
       explanation: copy.explanation,
       lookProfile: copy.lookProfile,
+      outfit,
     });
     return NextResponse.json(result, {
       headers: { "Cache-Control": "no-store" },

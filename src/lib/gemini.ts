@@ -5,12 +5,14 @@ import { z } from "zod";
 import {
   facialAnalysisSchema,
   lookProfileSchema,
+  outfitProfileSchema,
   type FacialAnalysis,
   type Locale,
   type LookProfile,
+  type OutfitProfile,
   type Preferences,
 } from "./schemas";
-import { analysisPrompt, explanationPrompt, imagePrompt } from "./prompts";
+import { analysisPrompt, explanationPrompt, imagePrompt, outfitPrompt } from "./prompts";
 
 const explanationSchema = z.object({
   lookName: z.string().min(1).max(120),
@@ -74,6 +76,46 @@ export async function analyzeFace({
   return facialAnalysisSchema.parse(parseJson(response.text ?? ""));
 }
 
+export async function analyzeOutfit({
+  bytes,
+  mimeType,
+  locale,
+}: {
+  bytes: Buffer;
+  mimeType: string;
+  locale: Locale;
+}): Promise<OutfitProfile> {
+  const response = await client().models.generateContent({
+    model: process.env.GEMINI_ANALYSIS_MODEL ?? "gemini-3.8-flash",
+    contents: [{
+      role: "user",
+      parts: [
+        { text: outfitPrompt(locale) },
+        { inlineData: { mimeType, data: bytes.toString("base64") } },
+      ],
+    }],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.OBJECT,
+        required: ["hasClothing", "summary", "colors", "pattern", "formality", "metals"],
+        properties: {
+          hasClothing: { type: Type.BOOLEAN },
+          summary: { type: Type.STRING },
+          colors: { type: Type.ARRAY, maxItems: 4, items: { type: Type.STRING } },
+          pattern: {
+            type: Type.STRING,
+            enum: ["solid", "print", "stripes", "checks", "textured", "mixed"],
+          },
+          formality: { type: Type.STRING, enum: ["casual", "smart", "evening", "formal"] },
+          metals: { type: Type.STRING, enum: ["gold", "silver", "mixed", "none"] },
+        },
+      },
+    },
+  });
+  return outfitProfileSchema.parse(parseJson(response.text ?? ""));
+}
+
 export async function generateMakeupImage({
   bytes,
   mimeType,
@@ -111,14 +153,16 @@ export async function explainLook({
   analysis,
   locale,
   preferences,
+  outfit,
 }: {
   analysis: FacialAnalysis;
   locale: Locale;
   preferences?: Preferences;
+  outfit?: OutfitProfile;
 }) {
   const response = await client().models.generateContent({
     model: process.env.GEMINI_ANALYSIS_MODEL ?? "gemini-3.8-flash",
-    contents: explanationPrompt({ analysis, locale, preferences }),
+    contents: explanationPrompt({ analysis, locale, preferences, outfit }),
     config: {
       responseMimeType: "application/json",
       responseSchema: {
